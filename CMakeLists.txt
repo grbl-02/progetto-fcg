@@ -20,3 +20,6 @@ target_compile_options(common INTERFACE
   $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wall>
   $<$<CXX_COMPILER_ID:MSVC>: /W4>
 )
+
+add_executable(Tappa01 Tappa01/tappa01.cpp)
+target_link_libraries(Tappa01 PRIVATE SFML::Graphics)
