@@ -6,6 +6,63 @@ const unsigned window_width = 800;
 const unsigned window_height = 600;
 const float max_frame_rate = 60;
 
+// giocatore
+const char* player_texture = "Risorse/sprites/characters/player.png";
+
+// camera
+const float zoom_factor = 0.3f;
+
+// stato
+
+struct Player
+{
+    sf::Texture texture;
+    sf::Sprite sprite;
+    sf::Vector2f pos;
+
+    Player();
+    void draw(sf::RenderWindow& window);
+};
+
+struct State
+{
+    Player player;
+
+    State();
+    void draw(sf::RenderWindow& window);
+};
+
+Player::Player() : sprite(texture)
+{
+    texture = sf::Texture(player_texture);
+    sprite = sf::Sprite(texture);
+    sprite.setTextureRect(sf::IntRect({0, 96}, {48, 48}));
+    float sx = (float)sprite.getTextureRect().size.x;
+    float sy = (float)sprite.getTextureRect().size.y;
+    sprite.setOrigin({sx / 2.f, sy / 2.f});
+    float px = (float)window_width / 2.0;
+    float py = (float)window_height - sy / 2.0;
+    pos = {px, py};
+}
+
+State::State()
+{
+    
+}
+
+// draw
+
+void Player::draw(sf::RenderWindow& window)
+{
+    sprite.setPosition(pos);
+    window.draw(sprite);
+}
+
+void State::draw(sf::RenderWindow& window)
+{
+    player.draw(window);
+}
+
 // eventi
 
 void handle_close(sf::RenderWindow& window)
@@ -38,6 +95,15 @@ int main()
     window.setFramerateLimit(max_frame_rate);
     window.setMinimumSize(window.getSize());
 
+    sf::View camera = sf::View(sf::FloatRect({0.0, 0.0}, {window_width, window_height}));
+    camera.zoom(zoom_factor);
+    float newHeight = (float)window_height * zoom_factor;
+    float newX = (float)window_width / 2.f;
+    float newY = (float)window_height - (newHeight / 2.f);
+    camera.setCenter({newX, newY});
+
+    State state;
+
     while (window.isOpen())
     {
         // eventi
@@ -48,6 +114,10 @@ int main()
 
         // display
         window.clear(sf::Color::Black);
+
+        window.setView(camera);
+        state.draw(window);
+
         window.display();
     }
 }
