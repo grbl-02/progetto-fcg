@@ -8,13 +8,16 @@ const float max_frame_rate = 60;
 
 // giocatore
 const char* player_texture = "Risorse/sprites/characters/player.png";
-const float player_speed = 120.0;
+const float player_speed = 80.0;
 
 // camera
 const float zoom_factor = 0.3f;
 
 // animazione
-const float frameTime = 0.1;
+const float movFrameTime = 0.125;
+const float idleFrameTime = 0.2;
+
+enum dir { UP, DOWN, LEFT, RIGHT };
 
 // stato
 
@@ -25,14 +28,12 @@ struct Player
     sf::Vector2f pos;
     float speed;
     int animation_frame = 0;
-    bool wasLeft = false;
+    bool isLeft;
     sf::Clock animation_clock;
 
     Player();
     void draw(sf::RenderWindow& window);
-    void animation(int row);
-    void animationLeft();
-    void animationRight();
+    void animation(int row, float frameTime);
     void move_up(float elapsed);
     void move_down(float elapsed);
     void move_left(float elapsed);
@@ -46,6 +47,8 @@ struct State
     bool move_player_down;
     bool move_player_left;
     bool move_player_right;
+    bool playerMoving;
+    dir lastPressed;
 
     State();
     void draw(sf::RenderWindow& window);
@@ -64,6 +67,7 @@ Player::Player() : sprite(texture)
     float py = (float)window_height - sy / 2.0;
     pos = {px, py};
     speed = player_speed;
+    isLeft = false;
     animation_clock.start();
 }
 
@@ -73,6 +77,8 @@ State::State()
     move_player_down = false;
     move_player_left = false;
     move_player_right = false;
+    lastPressed = UP;
+    playerMoving = false;
 }
 
 // draw
@@ -90,43 +96,17 @@ void State::draw(sf::RenderWindow& window)
 
 // update
 
-void Player::animation(int row)
+void Player::animation(int row, float frameTime)
 {
     if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
     {
         animation_clock.restart();
         sf::IntRect curFrame = sf::IntRect({animation_frame * 48, row * 48}, {48, 48});
         sprite.setTextureRect(curFrame);
-        animation_frame = (animation_frame + 1) % 6;
-    }
-}
-
-void Player::animationLeft()
-{
-    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
-    {
-        animation_clock.restart();
-        sf::IntRect curFrame = sf::IntRect({animation_frame * 48, 4 * 48}, {48, 48});
-        sprite.setTextureRect(curFrame);
-        sprite.setScale({-1.f, 1.f});
-        animation_frame = (animation_frame + 1) % 6;
-        if (!wasLeft)
-            wasLeft = true;
-    }
-}
-
-void Player::animationRight()
-{
-    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
-    {
-        animation_clock.restart();
-        sf::IntRect curFrame = sf::IntRect({animation_frame * 48, 4 * 48}, {48, 48});
-        sprite.setTextureRect(curFrame);
-        if (wasLeft)
-        {
+        if (isLeft)
+            sprite.setScale({-1.f, 1.f});
+        else
             sprite.setScale({1.f, 1.f});
-            wasLeft = false;
-        }
         animation_frame = (animation_frame + 1) % 6;
     }
 }
@@ -134,25 +114,29 @@ void Player::animationRight()
 void Player::move_up(float elapsed)
 {
     pos.y -= player_speed * elapsed;
-    animation(5);
+    isLeft = false;
+    animation(5, movFrameTime);
 }
 
 void Player::move_down(float elapsed)
 {
     pos.y += player_speed * elapsed;
-    animation(3);
+    isLeft = false;
+    animation(3, movFrameTime);
 }
 
 void Player::move_left(float elapsed)
 {
     pos.x -= player_speed * elapsed;
-    animationLeft();
+    isLeft = true;
+    animation(4, movFrameTime);
 }
 
 void Player::move_right(float elapsed)
 {
     pos.x += player_speed * elapsed;
-    animationRight();
+    isLeft = false;
+    animation(4, movFrameTime);
 }
 
 void State::update(float elapsed)
@@ -165,6 +149,26 @@ void State::update(float elapsed)
         player.move_left(elapsed);
     if (move_player_right)
         player.move_right(elapsed);
+    if (!playerMoving)
+    {
+        int row = 0;
+        switch (lastPressed)
+        {
+            case UP:
+                row = 2;
+                break;
+            case DOWN:
+                row = 0;
+                break;
+            case LEFT:
+                row = 1;
+                break;
+            case RIGHT:
+                row = 1;
+                break;
+        }
+        player.animation(row, idleFrameTime);
+    }
 }
 
 // eventi
@@ -200,15 +204,19 @@ void handle(const sf::Event::KeyPressed& key, State& state)
     {
         case sf::Keyboard::Scancode::Up:
             state.move_player_up = true;
+            state.playerMoving = true;
             return;
         case sf::Keyboard::Scancode::Down:
             state.move_player_down = true;
+            state.playerMoving = true;
             return;
         case sf::Keyboard::Scancode::Left:
             state.move_player_left = true;
+            state.playerMoving = true;
             return;
         case sf::Keyboard::Scancode::Right:
             state.move_player_right = true;
+            state.playerMoving = true;
             return;
         default:
             return;
@@ -221,15 +229,23 @@ void handle(const sf::Event::KeyReleased& key, State& state)
     {
         case sf::Keyboard::Scancode::Up:
             state.move_player_up = false;
+            state.lastPressed = UP;
+            state.playerMoving = false;
             return;
         case sf::Keyboard::Scancode::Down:
             state.move_player_down = false;
+            state.lastPressed = DOWN;
+            state.playerMoving = false;
             return;
         case sf::Keyboard::Scancode::Left:
             state.move_player_left = false;
+            state.lastPressed = LEFT;
+            state.playerMoving = false;
             return;
         case sf::Keyboard::Scancode::Right:
             state.move_player_right = false;
+            state.lastPressed = RIGHT;
+            state.playerMoving = false;
             return;
         default:
             return;
