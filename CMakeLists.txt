@@ -23,3 +23,6 @@ target_compile_options(common INTERFACE
 
 add_executable(Tappa01 Tappa01/tappa01.cpp)
 target_link_libraries(Tappa01 PRIVATE SFML::Graphics)
+
+add_executable(Tappa02 Tappa02/tappa02.cpp)
+target_link_libraries(Tappa02 PRIVATE SFML::Graphics)
