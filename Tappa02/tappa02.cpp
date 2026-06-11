@@ -8,10 +8,13 @@ const float max_frame_rate = 60;
 
 // giocatore
 const char* player_texture = "Risorse/sprites/characters/player.png";
-const float player_speed = 200.0;
+const float player_speed = 120.0;
 
 // camera
 const float zoom_factor = 0.3f;
+
+// animazione
+const float frameTime = 0.1;
 
 // stato
 
@@ -21,9 +24,15 @@ struct Player
     sf::Sprite sprite;
     sf::Vector2f pos;
     float speed;
+    int animation_frame = 0;
+    bool wasLeft = false;
+    sf::Clock animation_clock;
 
     Player();
     void draw(sf::RenderWindow& window);
+    void animation(int row);
+    void animationLeft();
+    void animationRight();
     void move_up(float elapsed);
     void move_down(float elapsed);
     void move_left(float elapsed);
@@ -55,6 +64,7 @@ Player::Player() : sprite(texture)
     float py = (float)window_height - sy / 2.0;
     pos = {px, py};
     speed = player_speed;
+    animation_clock.start();
 }
 
 State::State()
@@ -80,24 +90,69 @@ void State::draw(sf::RenderWindow& window)
 
 // update
 
+void Player::animation(int row)
+{
+    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    {
+        animation_clock.restart();
+        sf::IntRect curFrame = sf::IntRect({animation_frame * 48, row * 48}, {48, 48});
+        sprite.setTextureRect(curFrame);
+        animation_frame = (animation_frame + 1) % 6;
+    }
+}
+
+void Player::animationLeft()
+{
+    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    {
+        animation_clock.restart();
+        sf::IntRect curFrame = sf::IntRect({animation_frame * 48, 4 * 48}, {48, 48});
+        sprite.setTextureRect(curFrame);
+        sprite.setScale({-1.f, 1.f});
+        animation_frame = (animation_frame + 1) % 6;
+        if (!wasLeft)
+            wasLeft = true;
+    }
+}
+
+void Player::animationRight()
+{
+    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    {
+        animation_clock.restart();
+        sf::IntRect curFrame = sf::IntRect({animation_frame * 48, 4 * 48}, {48, 48});
+        sprite.setTextureRect(curFrame);
+        if (wasLeft)
+        {
+            sprite.setScale({1.f, 1.f});
+            wasLeft = false;
+        }
+        animation_frame = (animation_frame + 1) % 6;
+    }
+}
+
 void Player::move_up(float elapsed)
 {
     pos.y -= player_speed * elapsed;
+    animation(5);
 }
 
 void Player::move_down(float elapsed)
 {
     pos.y += player_speed * elapsed;
+    animation(3);
 }
 
 void Player::move_left(float elapsed)
 {
     pos.x -= player_speed * elapsed;
+    animationLeft();
 }
 
 void Player::move_right(float elapsed)
 {
     pos.x += player_speed * elapsed;
+    animationRight();
 }
 
 void State::update(float elapsed)
