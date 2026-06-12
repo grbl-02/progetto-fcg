@@ -5,8 +5,8 @@
 
 // finestra
 const char* window_title = "Tappa 03";
-const unsigned window_width = 800;
-const unsigned window_height = 600;
+const unsigned window_width = 384;
+const unsigned window_height = 288;
 const float max_frame_rate = 60;
 
 // giocatore
@@ -14,7 +14,7 @@ const char* player_texture = "Risorse/sprites/characters/player.png";
 const float player_speed = 80.0;
 
 // camera
-const float zoom_factor = 0.3f;
+const float zoom_factor = 0.5f;
 
 // animazione
 const float movFrameTime = 0.125;
@@ -22,8 +22,8 @@ const float idleFrameTime = 0.2;
 
 // stanza
 const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.png";
-const sf::Vector2f displacement = {304.0, 446.0};
-const sf::Vector2i floor_tile_num = {6, 4};
+const sf::Vector2f displacement = {0.0, 0.0};
+const sf::Vector2i floor_tile_num = {12, 9};
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 
@@ -96,8 +96,8 @@ Player::Player() : sprite(texture)
     float sx = (float)sprite.getTextureRect().size.x;
     float sy = (float)sprite.getTextureRect().size.y;
     sprite.setOrigin({sx / 2.f, sy / 2.f});
-    float px = (float)window_width / 2.0;
-    float py = (float)window_height - sy / 2.0 - 26;
+    float px = (float)window_width / 2.f;
+    float py = (float)window_height - sy / 2.0 - 32;
     pos = {px, py};
     speed = player_speed;
     isLeft = false;
@@ -113,24 +113,36 @@ Tile::Tile(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect
 
 sf::IntRect stringToIntRect(std::string tileID)
 {
-    if (tileID == "UPL")
-        return sf::IntRect({7*32, 0},{32, 32});
-    else if (tileID == "UPC")
-        return sf::IntRect({8*32, 0},{32, 32});
-    else if (tileID == "UPR")
-        return sf::IntRect({9*32, 0},{32, 32});
-    else if (tileID == "MIDL")
-        return sf::IntRect({7*32, 1*32},{32, 32});
-    else if (tileID == "MIDC")
-        return sf::IntRect({8*32, 1*32},{32, 32});
-    else if (tileID == "MIDR")
-        return sf::IntRect({9*32, 1*32},{32, 32});
-    else if (tileID == "DOWNL")
-        return sf::IntRect({7*32, 2*32},{32, 32});
-    else if (tileID == "DOWNC")
-        return sf::IntRect({8*32, 2*32},{32, 32});
-    else //if (tileID == "DOWNR")
-        return sf::IntRect({9*32, 2*32},{32, 32});
+    if (tileID == "UPLWALLTRANS")
+        return sf::IntRect({4*32, 0*32}, {32, 32});
+    else if (tileID == "UPCWALLTRANS")
+        return sf::IntRect({5*32, 0*32}, {32, 32});
+    else if (tileID == "UPRWALLTRANS")
+        return sf::IntRect({6*32, 0*32}, {32, 32});
+    else if (tileID == "LWALLTRANS")
+        return sf::IntRect({4*32, 1*32}, {32, 32});
+    else if (tileID == "RWALLTRANS")
+        return sf::IntRect({6*32, 1*32}, {32, 32});
+    else if (tileID == "DLWALLTRANS")
+        return sf::IntRect({4*32, 2*32}, {32, 32});
+    else if (tileID == "DCWALLTRANS")
+        return sf::IntRect({5*32, 2*32}, {32, 32});
+    else if (tileID == "DRWALLTRANS")
+        return sf::IntRect({6*32, 2*32}, {32, 32});
+    else if (tileID == "WALL1")
+        return sf::IntRect({1*32, 2*32}, {32, 32});
+    else if (tileID == "WALL2")
+        return sf::IntRect({1*32, 4*32}, {32, 32});
+    else if (tileID == "DOOR1")
+        return sf::IntRect({2*32, 5*32}, {32, 32});
+    else if (tileID == "DOOR2")
+        return sf::IntRect({3*32, 5*32}, {32, 32});
+    else if (tileID == "DOOR3")
+        return sf::IntRect({2*32, 6*32}, {32, 32});
+    else if (tileID == "DOOR4")
+        return sf::IntRect({3*32, 6*32}, {32, 32});
+    else// if (tileID == "FLOOR")
+        return sf::IntRect({8*32, 1*32}, {32, 32});
 }
 
 Room::Room(const std::string& filename)
@@ -156,6 +168,52 @@ Room::Room(const std::string& filename)
                 tx * 32 + displacement.x,
                 ty * 32 + displacement.y
             };
+            if (tileID == "UPLWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({0*32, 0*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "UPCWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({1*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "UPRWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({2*32, 0*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "LWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "RWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "DLWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "DCWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({1*32, 0*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));    
+            }
+            else if (tileID == "DRWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "WALL2" || tileID == "DOOR3" || tileID == "DOOR4")
+            {
+                sf::IntRect floorRect = stringToIntRect("FLOOR");
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+
             tiles.push_back(Tile(tile_pos, roomTexture, textureRect));
         }
     }
@@ -367,15 +425,12 @@ int main()
     sf::RenderWindow window(sf::VideoMode({window_width, window_height}), window_title);
     window.setFramerateLimit(max_frame_rate);
     window.setMinimumSize(window.getSize());
-
+/*
     sf::View camera = sf::View(sf::FloatRect({0.0, 0.0}, {window_width, window_height}));
     camera.zoom(zoom_factor);
-    float newHeight = (float)window_height * zoom_factor;
-    float newX = (float)window_width / 2.f;
-    float newY = (float)window_height - (newHeight / 2.f);
-    camera.setCenter({newX, newY});
+    camera.setCenter({(float)window_width / 4.f, (float)window_height / 4.f});
     window.setView(camera);
-
+*/
     State state;
     sf::Clock clock;
 
