@@ -5,19 +5,16 @@
 
 // finestra
 const char* window_title = "Tappa 03";
-const unsigned window_width = 384;
-const unsigned window_height = 288;
+const unsigned window_width = 1152;
+const unsigned window_height = 864;
 const float max_frame_rate = 60;
 
 // giocatore
 const char* player_texture = "Risorse/sprites/characters/player.png";
-const float player_speed = 80.0;
-
-// camera
-const float zoom_factor = 0.5f;
+const float player_speed = 120.0;
 
 // animazione
-const float movFrameTime = 0.125;
+const float movFrameTime = 0.1;
 const float idleFrameTime = 0.2;
 
 // stanza
@@ -96,8 +93,8 @@ Player::Player() : sprite(texture)
     float sx = (float)sprite.getTextureRect().size.x;
     float sy = (float)sprite.getTextureRect().size.y;
     sprite.setOrigin({sx / 2.f, sy / 2.f});
-    float px = (float)window_width / 2.f;
-    float py = (float)window_height - sy / 2.0 - 32;
+    float px = (float)window_width / (3.f * 2.f);
+    float py = (float)window_height / 3.f - sy / 2.0 - 32;
     pos = {px, py};
     speed = player_speed;
     isLeft = false;
@@ -129,6 +126,14 @@ sf::IntRect stringToIntRect(std::string tileID)
         return sf::IntRect({5*32, 2*32}, {32, 32});
     else if (tileID == "DRWALLTRANS")
         return sf::IntRect({6*32, 2*32}, {32, 32});
+    else if (tileID == "LEFTDOORTRANS1")
+        return sf::IntRect({5*32, 4*32}, {32, 32});
+    else if (tileID == "RIGHTDOORTRANS1")
+        return sf::IntRect({4*32, 4*32}, {32, 32});
+    else if (tileID == "LEFTDOORTRANS2")
+        return sf::IntRect({5*32, 3*32}, {32, 32});
+    else if (tileID == "RIGHTDOORTRANS2")
+        return sf::IntRect({4*32, 3*32}, {32, 32});
     else if (tileID == "WALL1")
         return sf::IntRect({1*32, 2*32}, {32, 32});
     else if (tileID == "WALL2")
@@ -141,6 +146,22 @@ sf::IntRect stringToIntRect(std::string tileID)
         return sf::IntRect({2*32, 6*32}, {32, 32});
     else if (tileID == "DOOR4")
         return sf::IntRect({3*32, 6*32}, {32, 32});
+    else if (tileID == "LEFTDOOR1")
+        return sf::IntRect({2*32, 2*32}, {32, 32});
+    else if (tileID == "LEFTDOOR2")
+        return sf::IntRect({2*32, 4*32}, {32, 32});
+    else if (tileID == "RIGHTDOOR1")
+        return sf::IntRect({0*32, 2*32}, {32, 32});
+    else if (tileID == "RIGHTDOOR2")
+        return sf::IntRect({0*32, 4*32}, {32, 32});
+    else if (tileID == "FLOORDECOR1")
+        return sf::IntRect({11*32, 8*32}, {32, 32});
+    else if (tileID == "FLOORDECOR2")
+        return sf::IntRect({12*32, 8*32}, {32, 32});
+    else if (tileID == "FLOORDECOR3")
+        return sf::IntRect({13*32, 8*32}, {32, 32});
+    else if (tileID == "FLOORDECOR4")
+        return sf::IntRect({11*32, 9*32}, {32, 32});
     else// if (tileID == "FLOOR")
         return sf::IntRect({8*32, 1*32}, {32, 32});
 }
@@ -168,7 +189,7 @@ Room::Room(const std::string& filename)
                 tx * 32 + displacement.x,
                 ty * 32 + displacement.y
             };
-            if (tileID == "UPLWALLTRANS")
+            if (tileID == "UPLWALLTRANS" || tileID == "RIGHTDOORTRANS2")
             {
                 sf::IntRect floorRect = sf::IntRect({0*32, 0*32}, {32, 32});
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
@@ -178,17 +199,17 @@ Room::Room(const std::string& filename)
                 sf::IntRect floorRect = sf::IntRect({1*32, 1*32}, {32, 32});
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
             }
-            else if (tileID == "UPRWALLTRANS")
+            else if (tileID == "UPRWALLTRANS" || tileID == "LEFTDOORTRANS2")
             {
                 sf::IntRect floorRect = sf::IntRect({2*32, 0*32}, {32, 32});
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
             }
-            else if (tileID == "LWALLTRANS")
+            else if (tileID == "LWALLTRANS" || tileID == "LEFTDOORTRANS1")
             {
                 sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
             }
-            else if (tileID == "RWALLTRANS")
+            else if (tileID == "RWALLTRANS" || tileID == "RIGHTDOORTRANS1")
             {
                 sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
@@ -208,7 +229,7 @@ Room::Room(const std::string& filename)
                 sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
             }
-            else if (tileID == "WALL2" || tileID == "DOOR3" || tileID == "DOOR4")
+            else if (tileID == "WALL2" || tileID == "DOOR3" || tileID == "DOOR4" || tileID == "LEFTDOOR2" || tileID == "RIGHTDOOR2")
             {
                 sf::IntRect floorRect = stringToIntRect("FLOOR");
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
@@ -422,15 +443,21 @@ void handle(const sf::Event::KeyReleased& key, State& state)
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode({window_width, window_height}), window_title);
+    sf::Vector2u window_size({window_width, window_height});
+    sf::RenderWindow window(sf::VideoMode(window_size), window_title);
     window.setFramerateLimit(max_frame_rate);
     window.setMinimumSize(window.getSize());
-/*
-    sf::View camera = sf::View(sf::FloatRect({0.0, 0.0}, {window_width, window_height}));
-    camera.zoom(zoom_factor);
-    camera.setCenter({(float)window_width / 4.f, (float)window_height / 4.f});
+
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    sf::Vector2i centerPosition(
+        (int)((desktop.size.x - window_size.x) / 2),
+        (int)((desktop.size.y - window_size.y) / 2)
+    );
+    window.setPosition(centerPosition);
+
+    sf::View camera = sf::View(sf::FloatRect({0.0, 0.0}, {384.f, 288.f}));
     window.setView(camera);
-*/
+
     State state;
     sf::Clock clock;
 
