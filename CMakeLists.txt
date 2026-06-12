@@ -14,6 +14,12 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
+FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3 # It's best to lock onto a specific stable version
+)
+FetchContent_MakeAvailable(json)
+
 add_library(common INTERFACE)
 target_compile_features(common INTERFACE cxx_std_17)
 target_compile_options(common INTERFACE
@@ -26,3 +32,7 @@ target_link_libraries(Tappa01 PRIVATE SFML::Graphics)
 
 add_executable(Tappa02 Tappa02/tappa02.cpp)
 target_link_libraries(Tappa02 PRIVATE SFML::Graphics)
+
+add_executable(Tappa03 Tappa03/tappa03.cpp)
+target_link_libraries(Tappa03 PRIVATE SFML::Graphics)
+target_link_libraries(Tappa03 PRIVATE nlohmann_json::nlohmann_json)

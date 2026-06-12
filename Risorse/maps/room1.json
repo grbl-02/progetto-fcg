@@ -1,0 +1,8 @@
+{
+    "grid" : [
+        "UPL", "UPC", "UPC", "UPC", "UPC", "UPR",
+        "MIDL", "MIDC", "MIDC", "MIDC", "MIDC", "MIDR",
+        "MIDL", "MIDC", "MIDC", "MIDC", "MIDC", "MIDR",
+        "MIDL", "MIDC", "MIDC", "MIDC", "MIDC", "MIDR"
+    ]
+}
