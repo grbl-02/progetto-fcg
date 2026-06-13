@@ -9,5 +9,17 @@
         "LEFTDOORTRANS2", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "FLOORDECOR2", "FLOOR", "FLOOR", "FLOOR", "RWALLTRANS",
         "LWALLTRANS", "FLOOR", "FLOOR", "FLOORDECOR2", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "FLOOR", "RWALLTRANS",
         "DLWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DCWALLTRANS", "DRWALLTRANS"
-    ]
+    ],
+    "exits" : {
+        "left" : {
+            "bound1" : [0, 5],
+            "bound2" : [0, 6],
+            "room" : "Risorse/maps/room1.json"
+        },
+        "up" : {
+            "bound1" : [5, 3],
+            "bound2" : [5, 5],
+            "room" : "Risorse/maps/room5.json"
+        }
+    }
 }

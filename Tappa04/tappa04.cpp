@@ -36,6 +36,7 @@ struct Player
     int animation_frame = 0;
     bool isLeft;
     sf::Clock animation_clock;
+    sf::FloatRect hitbox;
 
     Player();
     void draw(sf::RenderWindow& window);
@@ -61,6 +62,7 @@ struct Room
     std::vector<Tile> tiles;
 
     Room(const std::string& filename);
+    sf::IntRect stringToIntRect(std::string tileID);
     void draw(sf::RenderWindow& window);
 };
 
@@ -99,6 +101,7 @@ Player::Player() : sprite(texture)
     speed = player_speed;
     isLeft = false;
     animation_clock.start();
+    hitbox = sf::FloatRect({pos.x - 5.f, pos.y + 15.f}, {10.f, 3.f});
 }
 
 Tile::Tile(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect) : sprite(texture)
@@ -106,64 +109,6 @@ Tile::Tile(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect
     sprite = sf::Sprite(texture);
     sprite.setTextureRect(textureRect);
     this->pos = pos;
-}
-
-sf::IntRect stringToIntRect(std::string tileID)
-{
-    if (tileID == "UPLWALLTRANS")
-        return sf::IntRect({4*32, 0*32}, {32, 32});
-    else if (tileID == "UPCWALLTRANS")
-        return sf::IntRect({5*32, 0*32}, {32, 32});
-    else if (tileID == "UPRWALLTRANS")
-        return sf::IntRect({6*32, 0*32}, {32, 32});
-    else if (tileID == "LWALLTRANS")
-        return sf::IntRect({4*32, 1*32}, {32, 32});
-    else if (tileID == "RWALLTRANS")
-        return sf::IntRect({6*32, 1*32}, {32, 32});
-    else if (tileID == "DLWALLTRANS")
-        return sf::IntRect({4*32, 2*32}, {32, 32});
-    else if (tileID == "DCWALLTRANS")
-        return sf::IntRect({5*32, 2*32}, {32, 32});
-    else if (tileID == "DRWALLTRANS")
-        return sf::IntRect({6*32, 2*32}, {32, 32});
-    else if (tileID == "LEFTDOORTRANS1")
-        return sf::IntRect({5*32, 4*32}, {32, 32});
-    else if (tileID == "RIGHTDOORTRANS1")
-        return sf::IntRect({4*32, 4*32}, {32, 32});
-    else if (tileID == "LEFTDOORTRANS2")
-        return sf::IntRect({5*32, 3*32}, {32, 32});
-    else if (tileID == "RIGHTDOORTRANS2")
-        return sf::IntRect({4*32, 3*32}, {32, 32});
-    else if (tileID == "WALL1")
-        return sf::IntRect({1*32, 2*32}, {32, 32});
-    else if (tileID == "WALL2")
-        return sf::IntRect({1*32, 4*32}, {32, 32});
-    else if (tileID == "DOOR1")
-        return sf::IntRect({2*32, 5*32}, {32, 32});
-    else if (tileID == "DOOR2")
-        return sf::IntRect({3*32, 5*32}, {32, 32});
-    else if (tileID == "DOOR3")
-        return sf::IntRect({2*32, 6*32}, {32, 32});
-    else if (tileID == "DOOR4")
-        return sf::IntRect({3*32, 6*32}, {32, 32});
-    else if (tileID == "LEFTDOOR1")
-        return sf::IntRect({2*32, 2*32}, {32, 32});
-    else if (tileID == "LEFTDOOR2")
-        return sf::IntRect({2*32, 4*32}, {32, 32});
-    else if (tileID == "RIGHTDOOR1")
-        return sf::IntRect({0*32, 2*32}, {32, 32});
-    else if (tileID == "RIGHTDOOR2")
-        return sf::IntRect({0*32, 4*32}, {32, 32});
-    else if (tileID == "FLOORDECOR1")
-        return sf::IntRect({11*32, 8*32}, {32, 32});
-    else if (tileID == "FLOORDECOR2")
-        return sf::IntRect({12*32, 8*32}, {32, 32});
-    else if (tileID == "FLOORDECOR3")
-        return sf::IntRect({13*32, 8*32}, {32, 32});
-    else if (tileID == "FLOORDECOR4")
-        return sf::IntRect({11*32, 9*32}, {32, 32});
-    else// if (tileID == "FLOOR")
-        return sf::IntRect({8*32, 1*32}, {32, 32});
 }
 
 Room::Room(const std::string& filename)
@@ -240,9 +185,9 @@ Room::Room(const std::string& filename)
     }
 }
 
-State::State() : room("Risorse/maps/room6.json")
+State::State() : room("Risorse/maps/room1.json")
 {
-    filename = "Risorse/maps/room6.json";
+    filename = "Risorse/maps/room1.json";
     move_player_up = false;
     move_player_down = false;
     move_player_left = false;
@@ -258,6 +203,12 @@ void Player::draw(sf::RenderWindow& window)
 {
     sprite.setPosition(pos);
     window.draw(sprite);
+    sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+    hb.setPosition(hitbox.position);
+    hb.setOutlineColor(sf::Color::White);
+    hb.setOutlineThickness(1.f);
+    hb.setFillColor(sf::Color::Transparent);
+    window.draw(hb);
 }
 
 void Tile::draw(sf::RenderWindow& window)
@@ -299,6 +250,7 @@ void Player::animation(int row, float frameTime)
 void Player::move_up(float elapsed)
 {
     pos.y -= player_speed * elapsed;
+    hitbox.position.y -= player_speed * elapsed;
     isLeft = false;
     animation(5, movFrameTime);
 }
@@ -306,6 +258,7 @@ void Player::move_up(float elapsed)
 void Player::move_down(float elapsed)
 {
     pos.y += player_speed * elapsed;
+    hitbox.position.y += player_speed * elapsed;
     isLeft = false;
     animation(3, movFrameTime);
 }
@@ -313,6 +266,7 @@ void Player::move_down(float elapsed)
 void Player::move_left(float elapsed)
 {
     pos.x -= player_speed * elapsed;
+    hitbox.position.x -= player_speed * elapsed;
     isLeft = true;
     animation(4, movFrameTime);
 }
@@ -320,8 +274,67 @@ void Player::move_left(float elapsed)
 void Player::move_right(float elapsed)
 {
     pos.x += player_speed * elapsed;
+    hitbox.position.x += player_speed * elapsed;
     isLeft = false;
     animation(4, movFrameTime);
+}
+
+sf::IntRect Room::stringToIntRect(std::string tileID)
+{
+    if (tileID == "UPLWALLTRANS")
+        return sf::IntRect({4*32, 0*32}, {32, 32});
+    else if (tileID == "UPCWALLTRANS")
+        return sf::IntRect({5*32, 0*32}, {32, 32});
+    else if (tileID == "UPRWALLTRANS")
+        return sf::IntRect({6*32, 0*32}, {32, 32});
+    else if (tileID == "LWALLTRANS")
+        return sf::IntRect({4*32, 1*32}, {32, 32});
+    else if (tileID == "RWALLTRANS")
+        return sf::IntRect({6*32, 1*32}, {32, 32});
+    else if (tileID == "DLWALLTRANS")
+        return sf::IntRect({4*32, 2*32}, {32, 32});
+    else if (tileID == "DCWALLTRANS")
+        return sf::IntRect({5*32, 2*32}, {32, 32});
+    else if (tileID == "DRWALLTRANS")
+        return sf::IntRect({6*32, 2*32}, {32, 32});
+    else if (tileID == "LEFTDOORTRANS1")
+        return sf::IntRect({5*32, 4*32}, {32, 32});
+    else if (tileID == "RIGHTDOORTRANS1")
+        return sf::IntRect({4*32, 4*32}, {32, 32});
+    else if (tileID == "LEFTDOORTRANS2")
+        return sf::IntRect({5*32, 3*32}, {32, 32});
+    else if (tileID == "RIGHTDOORTRANS2")
+        return sf::IntRect({4*32, 3*32}, {32, 32});
+    else if (tileID == "WALL1")
+        return sf::IntRect({1*32, 2*32}, {32, 32});
+    else if (tileID == "WALL2")
+        return sf::IntRect({1*32, 4*32}, {32, 32});
+    else if (tileID == "DOOR1")
+        return sf::IntRect({2*32, 5*32}, {32, 32});
+    else if (tileID == "DOOR2")
+        return sf::IntRect({3*32, 5*32}, {32, 32});
+    else if (tileID == "DOOR3")
+        return sf::IntRect({2*32, 6*32}, {32, 32});
+    else if (tileID == "DOOR4")
+        return sf::IntRect({3*32, 6*32}, {32, 32});
+    else if (tileID == "LEFTDOOR1")
+        return sf::IntRect({2*32, 2*32}, {32, 32});
+    else if (tileID == "LEFTDOOR2")
+        return sf::IntRect({2*32, 4*32}, {32, 32});
+    else if (tileID == "RIGHTDOOR1")
+        return sf::IntRect({0*32, 2*32}, {32, 32});
+    else if (tileID == "RIGHTDOOR2")
+        return sf::IntRect({0*32, 4*32}, {32, 32});
+    else if (tileID == "FLOORDECOR1")
+        return sf::IntRect({11*32, 8*32}, {32, 32});
+    else if (tileID == "FLOORDECOR2")
+        return sf::IntRect({12*32, 8*32}, {32, 32});
+    else if (tileID == "FLOORDECOR3")
+        return sf::IntRect({13*32, 8*32}, {32, 32});
+    else if (tileID == "FLOORDECOR4")
+        return sf::IntRect({11*32, 9*32}, {32, 32});
+    else// if (tileID == "FLOOR")
+        return sf::IntRect({8*32, 1*32}, {32, 32});
 }
 
 void State::update(float elapsed)
