@@ -12,13 +12,13 @@
     ],
     "exits" : {
         "left" : {
-            "bound1" : [0, 5],
-            "bound2" : [0, 6],
+            "pos" : [0, 5],
+            "size" : [1, 1],
             "room" : "Risorse/maps/room1.json"
         },
         "up" : {
-            "bound1" : [5, 3],
-            "bound2" : [5, 5],
+            "pos" : [5, 3],
+            "size" : [2, 1],
             "room" : "Risorse/maps/room5.json"
         }
     }

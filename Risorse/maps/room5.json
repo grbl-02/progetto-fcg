@@ -12,8 +12,8 @@
     ],
     "exits" : {
         "down" : {
-            "bound1" : [5, 9],
-            "bound2" : [7, 9],
+            "pos" : [5, 9],
+            "size" : [2, 1],
             "room" : "Risorse/maps/room4.json"
         }
     }

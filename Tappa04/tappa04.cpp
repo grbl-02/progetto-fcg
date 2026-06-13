@@ -21,6 +21,7 @@ const float idleFrameTime = 0.2;
 const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.png";
 const sf::Vector2f displacement = {0.0, 0.0};
 const sf::Vector2i floor_tile_num = {12, 9};
+std::string room1 = "Risorse/maps/room1.json";
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 
@@ -45,6 +46,10 @@ struct Player
     void move_down(float elapsed);
     void move_left(float elapsed);
     void move_right(float elapsed);
+    void enter_left_pos();
+    void enter_right_pos();
+    void enter_up_pos();
+    void enter_down_pos();
 };
 
 struct Tile
@@ -60,9 +65,20 @@ struct Room
 {
     sf::Texture roomTexture;
     std::vector<Tile> tiles;
+    sf::IntRect left_exit;
+    sf::IntRect right_exit;
+    sf::IntRect up_exit;
+    sf::IntRect down_exit;
 
-    Room(const std::string& filename);
+    std::string room_left;
+    std::string room_right;
+    std::string room_up;
+    std::string room_down;
+
+    Room(std::string& filename);
     sf::IntRect stringToIntRect(std::string tileID);
+    void unload();
+    void load(std::string& new_room);
     void draw(sf::RenderWindow& window);
 };
 
@@ -81,6 +97,7 @@ struct State
 
     State();
     void draw(sf::RenderWindow& window);
+    void room_transition();
     void update(float elapsed);
 };
 
@@ -96,7 +113,7 @@ Player::Player() : sprite(texture)
     float sy = (float)sprite.getTextureRect().size.y;
     sprite.setOrigin({sx / 2.f, sy / 2.f});
     float px = (float)window_width / (3.f * 2.f);
-    float py = (float)window_height / 3.f - sy / 2.0 - 32;
+    float py = (float)window_height / 3.f - sy / 2.f + 6.f;
     pos = {px, py};
     speed = player_speed;
     isLeft = false;
@@ -111,83 +128,14 @@ Tile::Tile(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect
     this->pos = pos;
 }
 
-Room::Room(const std::string& filename)
+Room::Room(std::string& filename)
 {
-    std::ifstream file(filename);
-
-    if (!file.is_open())
-    {
-        throw std::runtime_error("Failed to open map file: " + filename);
-    }
-
-    nlohmann::json mapData;
-    file >> mapData;
-
-    roomTexture = sf::Texture(all_tiles);
-    for (int ty = 0; ty < floor_tile_num.y; ty++)
-    {
-        for (int tx = 0; tx < floor_tile_num.x; tx++)
-        {
-            std::string tileID = mapData["grid"][ty * floor_tile_num.x + tx];
-            sf::IntRect textureRect = stringToIntRect(tileID);
-            sf::Vector2f tile_pos = {
-                tx * 32 + displacement.x,
-                ty * 32 + displacement.y
-            };
-            if (tileID == "UPLWALLTRANS" || tileID == "RIGHTDOORTRANS2")
-            {
-                sf::IntRect floorRect = sf::IntRect({0*32, 0*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "UPCWALLTRANS")
-            {
-                sf::IntRect floorRect = sf::IntRect({1*32, 1*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "UPRWALLTRANS" || tileID == "LEFTDOORTRANS2")
-            {
-                sf::IntRect floorRect = sf::IntRect({2*32, 0*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "LWALLTRANS" || tileID == "LEFTDOORTRANS1")
-            {
-                sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "RWALLTRANS" || tileID == "RIGHTDOORTRANS1")
-            {
-                sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "DLWALLTRANS")
-            {
-                sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "DCWALLTRANS")
-            {
-                sf::IntRect floorRect = sf::IntRect({1*32, 0*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));    
-            }
-            else if (tileID == "DRWALLTRANS")
-            {
-                sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-            else if (tileID == "WALL2" || tileID == "DOOR3" || tileID == "DOOR4" || tileID == "LEFTDOOR2" || tileID == "RIGHTDOOR2")
-            {
-                sf::IntRect floorRect = stringToIntRect("FLOOR");
-                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
-            }
-
-            tiles.push_back(Tile(tile_pos, roomTexture, textureRect));
-        }
-    }
+    load(filename);
 }
 
-State::State() : room("Risorse/maps/room1.json")
+State::State() : room(room1)
 {
-    filename = "Risorse/maps/room1.json";
+    filename = room1;
     move_player_up = false;
     move_player_down = false;
     move_player_left = false;
@@ -279,6 +227,30 @@ void Player::move_right(float elapsed)
     animation(4, movFrameTime);
 }
 
+void Player::enter_left_pos()
+{
+    pos.x = 12 * 32 - 5.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
+void Player::enter_right_pos()
+{
+    pos.x = 5.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
+void Player::enter_up_pos()
+{
+    pos.y = (float)window_height / 3.f - (float)sprite.getTextureRect().size.y / 2.f + 6.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
+void Player::enter_down_pos()
+{
+    pos.y = 3 * 32 - 15.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
 sf::IntRect Room::stringToIntRect(std::string tileID)
 {
     if (tileID == "UPLWALLTRANS")
@@ -337,6 +309,116 @@ sf::IntRect Room::stringToIntRect(std::string tileID)
         return sf::IntRect({8*32, 1*32}, {32, 32});
 }
 
+void Room::unload()
+{
+    tiles.clear();
+
+    left_exit = sf::IntRect();
+    right_exit = sf::IntRect();
+    up_exit = sf::IntRect();
+    down_exit = sf::IntRect();
+}
+
+void Room::load(std::string& new_room)
+{
+    std::ifstream file(new_room);
+
+    if (!file.is_open())
+    {
+        throw std::runtime_error("Failed to open map file: " + new_room);
+    }
+
+    room_left.clear();
+    room_right.clear();
+    room_up.clear();
+    room_down.clear();
+
+    nlohmann::json mapData;
+    file >> mapData;
+
+    roomTexture = sf::Texture(all_tiles);
+    for (int ty = 0; ty < floor_tile_num.y; ty++)
+    {
+        for (int tx = 0; tx < floor_tile_num.x; tx++)
+        {
+            std::string tileID = mapData["grid"][ty * floor_tile_num.x + tx];
+            sf::IntRect textureRect = stringToIntRect(tileID);
+            sf::Vector2f tile_pos = {
+                tx * 32 + displacement.x,
+                ty * 32 + displacement.y
+            };
+            if (tileID == "UPLWALLTRANS" || tileID == "RIGHTDOORTRANS2")
+            {
+                sf::IntRect floorRect = sf::IntRect({0*32, 0*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "UPCWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({1*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "UPRWALLTRANS" || tileID == "LEFTDOORTRANS2")
+            {
+                sf::IntRect floorRect = sf::IntRect({2*32, 0*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "LWALLTRANS" || tileID == "LEFTDOORTRANS1")
+            {
+                sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "RWALLTRANS" || tileID == "RIGHTDOORTRANS1")
+            {
+                sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "DLWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({0*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "DCWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({1*32, 0*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));    
+            }
+            else if (tileID == "DRWALLTRANS")
+            {
+                sf::IntRect floorRect = sf::IntRect({2*32, 1*32}, {32, 32});
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+            else if (tileID == "WALL2" || tileID == "DOOR3" || tileID == "DOOR4" || tileID == "LEFTDOOR2" || tileID == "RIGHTDOOR2")
+            {
+                sf::IntRect floorRect = stringToIntRect("FLOOR");
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect));
+            }
+
+            tiles.push_back(Tile(tile_pos, roomTexture, textureRect));
+        }
+    }
+
+    if (mapData["exits"].contains("left")) {
+        left_exit = sf::IntRect({mapData["exits"]["left"]["pos"][0].get<int>() * 32, mapData["exits"]["left"]["pos"][1].get<int>() * 32},
+                                {mapData["exits"]["left"]["size"][0].get<int>(), mapData["exits"]["left"]["size"][1].get<int>() * 32});
+        room_left = mapData["exits"]["left"]["room"];
+    };
+    if (mapData["exits"].contains("right")) {
+        right_exit = sf::IntRect({mapData["exits"]["right"]["pos"][0].get<int>() * 32, mapData["exits"]["right"]["pos"][1].get<int>() * 32},
+                                 {mapData["exits"]["right"]["size"][0].get<int>(), mapData["exits"]["right"]["size"][1].get<int>() * 32});
+        room_right = mapData["exits"]["right"]["room"];
+    };
+    if (mapData["exits"].contains("up")) {
+        up_exit = sf::IntRect({mapData["exits"]["up"]["pos"][0].get<int>() * 32, mapData["exits"]["up"]["pos"][1].get<int>() * 32},
+                              {mapData["exits"]["up"]["size"][0].get<int>() * 32 , mapData["exits"]["up"]["size"][1].get<int>()});
+        room_up = mapData["exits"]["up"]["room"];
+    };
+    if (mapData["exits"].contains("down")) {
+        down_exit = sf::IntRect({mapData["exits"]["down"]["pos"][0].get<int>() * 32, mapData["exits"]["down"]["pos"][1].get<int>() * 32},
+                                {mapData["exits"]["down"]["size"][0].get<int>() * 32, mapData["exits"]["down"]["size"][1].get<int>()});
+        room_down = mapData["exits"]["down"]["room"];
+    };
+}
+
 void State::update(float elapsed)
 {
     if (move_player_up)
@@ -366,6 +448,72 @@ void State::update(float elapsed)
                 break;
         }
         player.animation(row, idleFrameTime);
+    }
+    room_transition();
+}
+
+void State::room_transition()
+{
+    
+    if (!std::empty(room.room_left))
+    {
+        float hb1x = player.hitbox.position.x;
+        float hb1y = player.hitbox.position.y;
+        float ex1x = room.left_exit.position.x;
+        float ex1y = room.left_exit.position.y;
+        float hb2y = player.hitbox.position.y + player.hitbox.size.y;
+        float ex2y = room.left_exit.position.y + room.left_exit.size.y;
+        if (hb1x < ex1x && hb1y > ex1y && hb2y < ex2y)
+        {
+            room.unload();
+            room.load(room.room_left);
+            player.enter_left_pos();
+        }
+    }
+    if (!std::empty(room.room_right))
+    {
+        float hb1x = player.hitbox.position.x + player.hitbox.size.x;
+        float hb1y = player.hitbox.position.y;
+        float ex1x = room.right_exit.position.x;
+        float ex1y = room.right_exit.position.y;
+        float hb2y = player.hitbox.position.y + player.hitbox.size.y;
+        float ex2y = room.right_exit.position.y + room.right_exit.size.y;
+        if (hb1x > ex1x && hb1y > ex1y && hb2y < ex2y)
+        {
+            room.unload();
+            room.load(room.room_right);
+            player.enter_right_pos();
+        }
+    }
+    if (!std::empty(room.room_up))
+    {
+        float hb1x = player.hitbox.position.x;
+        float hb1y = player.hitbox.position.y;
+        float ex1x = room.up_exit.position.x;
+        float ex1y = room.up_exit.position.y;
+        float hb2x = player.hitbox.position.x + player.hitbox.size.x;
+        float ex2x = room.up_exit.position.x + room.up_exit.size.x;
+        if (hb1x > ex1x && hb1y < ex1y && hb2x < ex2x)
+        {
+            room.unload();
+            room.load(room.room_up);
+            player.enter_up_pos();
+        }
+    }
+    if (!std::empty(room.room_down))
+    {
+        float hb1x = player.hitbox.position.x;
+        float hb1y = player.hitbox.position.y + player.hitbox.size.y;
+        float ex1x = room.down_exit.position.x;
+        float ex1y = room.down_exit.position.y;
+        float hb2x = player.hitbox.position.x + player.hitbox.size.x;
+        float ex2x = room.down_exit.position.x + room.down_exit.size.x;
+        if (hb1x > ex1x && hb1y > ex1y && hb2x < ex2x)
+        {
+            room.unload();
+            room.load(room.room_down);
+            player.enter_down_pos();
+        }
     }
 }
 
