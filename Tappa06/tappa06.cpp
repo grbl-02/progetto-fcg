@@ -28,6 +28,9 @@ const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png
 
 // nemici
 const char* slime = "Risorse/sprites/characters/slime.png";
+const float jumpdist = 64.f;
+const float jumptime = 1.f;
+const float cooldown = 1.f;
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 
@@ -43,6 +46,7 @@ bool intersects(FloatCircle& circle, sf::Vector2f& point)
     float radiusSquared = circle.radius * circle.radius;
     return distanceSquared <= radiusSquared;
 }
+
 
 // struct
 
@@ -99,11 +103,17 @@ struct Enemy
     std::string name;
     int animation_frame = 0;
     sf::Clock animation_clock;
-    
+    FloatCircle aggro_range;
+
+    bool isJumping;
+    float jumptimer;
+    float cooldownTimer;
+    sf::Vector2f jumpStart;
+    sf::Vector2f jumpTarget;
 
     Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name);
-    void enemy_logic();
-    void aggro();
+    void jump_towards_player(sf::Vector2f playerPos, float elapsed);
+    void enemy_logic(Player player, float elapsed);
     void animation(int row, float frameTime);
     void draw(sf::RenderWindow& window);
 };
@@ -201,6 +211,13 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name) : s
     sprite.setOrigin({sx / 2.f, sy / 2.f});
     this->pos = pos;
     this->name = name;
+    animation_clock.start();
+    aggro_range = {pos, 160.f};
+    isJumping = false;
+    jumptimer = 0.f;
+    cooldownTimer = 0.f;
+    jumpStart = {0.f, 0.f};
+    jumpTarget = {0.f, 0.f};
 }
 
 Room::Room(std::string& filename)
@@ -410,6 +427,52 @@ void Player::enter_down_pos()
     {
         hitbox.position.x = 211.f - hitbox.size.x;
         pos.x = hitbox.position.x + 5.f;
+    }
+}
+
+void Enemy::jump_towards_player(sf::Vector2f playerPos, float elapsed)
+{
+    if (!isJumping)
+    {
+        sf::Vector2f toPlayer = playerPos - pos;
+        float distance = toPlayer.length();
+        sf::Vector2f direction = toPlayer / distance;
+        jumpStart = pos;
+        jumpTarget = jumpStart + direction * jumpdist;
+        isJumping = true;
+        jumptimer = 0.f;
+    }
+    else
+    {
+        jumptimer += elapsed;
+        float progress = jumptimer / jumptime;
+        if (progress >= 1.0f)
+        {
+            pos = jumpTarget;
+            isJumping = false;
+            cooldownTimer = 0.f;
+        }
+        else
+        {
+            sf::Vector2f currentPos = jumpStart + progress * (jumpTarget - jumpStart);
+            pos = currentPos;
+        }
+    }
+
+}
+
+void Enemy::enemy_logic(Player player, float elapsed)
+{
+    if (!isJumping)
+        cooldownTimer += elapsed;
+
+    if (intersects(aggro_range, player.pos) && cooldownTimer >= cooldown)
+    {
+        jump_towards_player(player.pos, elapsed);
+    }
+    else
+    {
+        animation(1, idleFrameTime);
     }
 }
 
@@ -832,7 +895,7 @@ void State::update(float elapsed)
 
     for (auto& enemy : room.enemies)
     {
-        enemy.animation(1, idleFrameTime);
+        enemy.enemy_logic(player, elapsed);
     }
 
     room_transition();
