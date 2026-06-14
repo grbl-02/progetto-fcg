@@ -31,6 +31,18 @@ const char* slime = "Risorse/sprites/characters/slime.png";
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 
+struct FloatCircle {
+    sf::Vector2f center;
+    float radius;
+};
+
+bool intersects(FloatCircle& circle, sf::Vector2f& point)
+{
+    sf::Vector2f difference = point - circle.center;
+    float distanceSquared = (difference.x * difference.x) + (difference.y * difference.y);
+    float radiusSquared = circle.radius * circle.radius;
+    return distanceSquared <= radiusSquared;
+}
 
 // struct
 
@@ -85,8 +97,14 @@ struct Enemy
     sf::Sprite sprite;
     sf::Vector2f pos;
     std::string name;
+    int animation_frame = 0;
+    sf::Clock animation_clock;
+    
 
     Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name);
+    void enemy_logic();
+    void aggro();
+    void animation(int row, float frameTime);
     void draw(sf::RenderWindow& window);
 };
 
@@ -392,6 +410,17 @@ void Player::enter_down_pos()
     {
         hitbox.position.x = 211.f - hitbox.size.x;
         pos.x = hitbox.position.x + 5.f;
+    }
+}
+
+void Enemy::animation(int row, float frameTime)
+{
+    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    {
+        animation_clock.restart();
+        sf::IntRect curFrame = sf::IntRect({animation_frame * 32, row * 32}, {32, 32});
+        sprite.setTextureRect(curFrame);
+        animation_frame = (animation_frame + 1) % 4;
     }
 }
 
@@ -800,6 +829,12 @@ void State::update(float elapsed)
         }
         player.animation(row, idleFrameTime);
     }
+
+    for (auto& enemy : room.enemies)
+    {
+        enemy.animation(1, idleFrameTime);
+    }
+
     room_transition();
 }
 
