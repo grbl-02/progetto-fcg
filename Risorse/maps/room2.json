@@ -21,5 +21,12 @@
             "size" : [1, 1],
             "room" : "Risorse/maps/room1.json"
         }
+    },
+    "enemies" : {
+        "slime" : {
+            "slime1" : {
+                "pos" : [48, 240]
+            }
+        }
     }
 }

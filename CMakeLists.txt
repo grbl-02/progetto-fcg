@@ -44,3 +44,7 @@ target_link_libraries(Tappa04 PRIVATE nlohmann_json::nlohmann_json)
 add_executable(Tappa05 Tappa05/tappa05.cpp)
 target_link_libraries(Tappa05 PRIVATE SFML::Graphics)
 target_link_libraries(Tappa05 PRIVATE nlohmann_json::nlohmann_json)
+
+add_executable(Tappa06 Tappa06/tappa06.cpp)
+target_link_libraries(Tappa06 PRIVATE SFML::Graphics)
+target_link_libraries(Tappa06 PRIVATE nlohmann_json::nlohmann_json)
