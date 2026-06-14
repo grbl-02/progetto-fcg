@@ -25,7 +25,8 @@
     "enemies" : {
         "slime" : {
             "slime1" : {
-                "pos" : [48, 240]
+                "pos" : [48, 240],
+                "dir" : "right"
             }
         }
     }

@@ -29,8 +29,9 @@ const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png
 // nemici
 const char* slime = "Risorse/sprites/characters/slime.png";
 const float jumpdist = 64.f;
-const float jumptime = 1.f;
-const float cooldown = 1.f;
+const float jumptime = 0.5f;
+const float cooldown = 1.0f;
+const float slimeMovFrameTime = jumptime / 6.f;
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 
@@ -102,6 +103,7 @@ struct Enemy
     sf::Vector2f pos;
     std::string name;
     int animation_frame = 0;
+    int jump_animation_frame = 0;
     sf::Clock animation_clock;
     FloatCircle aggro_range;
 
@@ -110,12 +112,13 @@ struct Enemy
     float cooldownTimer;
     sf::Vector2f jumpStart;
     sf::Vector2f jumpTarget;
+    dir enemyDir;
 
-    Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name);
+    Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir);
     void jump_towards_player(sf::Vector2f playerPos, float elapsed);
     void enemy_logic(Player player, float elapsed);
     void animation(int row, float frameTime);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, bool hitboxes);
 };
 
 struct Room
@@ -140,6 +143,7 @@ struct Room
     sf::IntRect stringToIntRect(std::string tileID);
     void unload();
     void load(std::string& new_room);
+    void enemyCollisions();
     void draw(sf::RenderWindow& window, bool hitboxes);
 };
 
@@ -202,7 +206,7 @@ Asset::Asset(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRe
     this->size = size;
 }
 
-Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name) : sprite(texture)
+Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir) : sprite(texture)
 {
     sprite = sf::Sprite(texture);
     sprite.setTextureRect(sf::IntRect({0, 32}, {32, 32}));
@@ -212,12 +216,13 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name) : s
     this->pos = pos;
     this->name = name;
     animation_clock.start();
-    aggro_range = {pos, 160.f};
+    aggro_range = {pos, 100.f};
     isJumping = false;
     jumptimer = 0.f;
     cooldownTimer = 0.f;
     jumpStart = {0.f, 0.f};
     jumpTarget = {0.f, 0.f};
+    this->enemyDir = enemyDir;
 }
 
 Room::Room(std::string& filename)
@@ -269,10 +274,21 @@ void Asset::draw(sf::RenderWindow& window)
     window.draw(sprite);
 }
 
-void Enemy::draw(sf::RenderWindow& window)
+void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
 {
     sprite.setPosition(pos);
     window.draw(sprite);
+
+    if (hitboxes)
+    {
+        sf::CircleShape aggro = sf::CircleShape(aggro_range.radius);
+        aggro.setOrigin({aggro_range.radius, aggro_range.radius});
+        aggro.setPosition(aggro_range.center);
+        aggro.setOutlineColor(sf::Color::White);
+        aggro.setOutlineThickness(1.f);
+        aggro.setFillColor(sf::Color::Transparent);
+        window.draw(aggro);
+    }
 }
 
 void Room::draw(sf::RenderWindow& window, bool hitboxes)
@@ -282,7 +298,7 @@ void Room::draw(sf::RenderWindow& window, bool hitboxes)
     for (auto& asset : assets)
         asset.draw(window);
     for (auto& enemy : enemies)
-        enemy.draw(window);
+        enemy.draw(window, hitboxes);
 
     if (hitboxes)
     {
@@ -437,9 +453,17 @@ void Enemy::jump_towards_player(sf::Vector2f playerPos, float elapsed)
         sf::Vector2f toPlayer = playerPos - pos;
         float distance = toPlayer.length();
         sf::Vector2f direction = toPlayer / distance;
+        if (std::abs(direction.x) >= std::abs(direction.y)) {
+            if (direction.x > 0) enemyDir = RIGHT;
+            else enemyDir = LEFT;
+        } else {
+            if (direction.y > 0) enemyDir = DOWN;
+            else enemyDir = UP;
+        }
         jumpStart = pos;
         jumpTarget = jumpStart + direction * jumpdist;
         isJumping = true;
+        jump_animation_frame = 0;
         jumptimer = 0.f;
     }
     else
@@ -449,13 +473,16 @@ void Enemy::jump_towards_player(sf::Vector2f playerPos, float elapsed)
         if (progress >= 1.0f)
         {
             pos = jumpTarget;
+            aggro_range.center = pos;
             isJumping = false;
+            animation_frame = 0;
             cooldownTimer = 0.f;
         }
         else
         {
             sf::Vector2f currentPos = jumpStart + progress * (jumpTarget - jumpStart);
             pos = currentPos;
+            aggro_range.center = pos;
         }
     }
 
@@ -466,24 +493,101 @@ void Enemy::enemy_logic(Player player, float elapsed)
     if (!isJumping)
         cooldownTimer += elapsed;
 
-    if (intersects(aggro_range, player.pos) && cooldownTimer >= cooldown)
+    if (isJumping) {
+        jump_towards_player(player.pos, elapsed);
+        int row;
+        switch (enemyDir) {
+            case LEFT:
+                row = 4;
+                break;
+            case RIGHT:
+                row = 4;
+                break;
+            case UP:
+                row = 5;
+                break;
+            case DOWN:
+                row = 3;
+                break;
+            default:
+                break;
+        }
+        animation(row, slimeMovFrameTime);
+    }
+    else if (intersects(aggro_range, player.pos) && cooldownTimer >= cooldown)
     {
         jump_towards_player(player.pos, elapsed);
+        int row;
+        switch (enemyDir) {
+            case LEFT:
+                row = 4;
+                break;
+            case RIGHT:
+                row = 4;
+                break;
+            case UP:
+                row = 5;
+                break;
+            case DOWN:
+                row = 3;
+                break;
+            default:
+                break;
+        }
+        animation(row, slimeMovFrameTime);
     }
     else
     {
-        animation(1, idleFrameTime);
+        int row;
+        switch (enemyDir) {
+            case LEFT:
+                row = 1;
+                break;
+            case RIGHT:
+                row = 1;
+                break;
+            case UP:
+                row = 2;
+                break;
+            case DOWN:
+                row = 0;
+                break;
+            default:
+                break;
+        }
+        animation(row, idleFrameTime);
     }
 }
 
 void Enemy::animation(int row, float frameTime)
 {
-    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    if (isJumping)
     {
-        animation_clock.restart();
-        sf::IntRect curFrame = sf::IntRect({animation_frame * 32, row * 32}, {32, 32});
-        sprite.setTextureRect(curFrame);
-        animation_frame = (animation_frame + 1) % 4;
+        if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+        {
+            animation_clock.restart();
+            sf::IntRect curFrame = sf::IntRect({jump_animation_frame * 32, row * 32}, {32, 32});
+            sprite.setTextureRect(curFrame);
+            if (enemyDir == LEFT)
+                sprite.setScale({-1.f, 1.f});
+            else
+                sprite.setScale({1.f, 1.f});
+            jump_animation_frame = (jump_animation_frame + 1) % 6;
+        }
+    }
+    else
+    {
+        if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+        {
+            animation_clock.restart();
+            sf::IntRect curFrame = sf::IntRect({animation_frame * 32, row * 32}, {32, 32});
+            sprite.setTextureRect(curFrame);
+            if (enemyDir == LEFT)
+                sprite.setScale({-1.f, 1.f});
+            else
+                sprite.setScale({1.f, 1.f});
+            animation_frame = (animation_frame + 1) % 4;
+        }
     }
 }
 
@@ -686,16 +790,34 @@ void Room::load(std::string& new_room)
     {
         sf::Vector2f pos;
         std::string name;
+        dir enemyDirection;
         for (auto& [enemy_type, enemy_list] : mapData["enemies"].items())
         {
             name = enemy_type;
             for (auto& [enemy_id, enemy_data] : enemy_list.items())
             {
                 pos = {enemy_data["pos"][0], enemy_data["pos"][1]};
-                enemies.push_back(Enemy(pos, slimeTexture, name));
+                if (enemy_data["dir"] == "left") {
+                    enemyDirection = LEFT;
+                }
+                else if (enemy_data["dir"] == "right") {
+                    enemyDirection = RIGHT;
+                }
+                else if (enemy_data["dir"] == "up") {
+                    enemyDirection = UP;
+                }
+                else if (enemy_data["dir"] == "down") {
+                    enemyDirection = DOWN;
+                }
+                enemies.push_back(Enemy(pos, slimeTexture, name, enemyDirection));
             }
         }
     }
+}
+
+void Room::enemyCollisions()
+{
+
 }
 
 void State::room_transition()
