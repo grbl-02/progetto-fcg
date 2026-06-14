@@ -26,5 +26,12 @@
             "size" : [1, 1],
             "room" : "Risorse/maps/room4.json"
         }
+    },
+    "assets" : {
+        "rock" : {
+            "spritepos" : [34, 129],
+            "pos" : [163.5, 10],
+            "size" : [57, 104]
+        }
     }
 }

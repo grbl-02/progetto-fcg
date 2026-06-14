@@ -23,6 +23,9 @@ const sf::Vector2f displacement = {0.0, 0.0};
 const sf::Vector2i floor_tile_num = {12, 9};
 std::string room1 = "Risorse/maps/room1.json";
 
+// oggetti
+const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";
+
 enum dir { UP, DOWN, LEFT, RIGHT };
 
 
@@ -40,7 +43,7 @@ struct Player
     sf::FloatRect hitbox;
 
     Player();
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, bool hitboxes);
     void animation(int row, float frameTime);
     void move_up(float elapsed);
     void move_down(float elapsed);
@@ -62,10 +65,23 @@ struct Tile
     void draw(sf::RenderWindow& window);
 };
 
+struct Asset
+{
+    sf::Sprite sprite;
+    sf::Vector2f pos;
+    sf::Vector2f size;
+    std::string name;
+
+    Asset(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect, std::string name, sf::Vector2f size);
+    void draw(sf::RenderWindow& window);
+};
+
 struct Room
 {
     sf::Texture roomTexture;
+    sf::Texture assetsTexture;
     std::vector<Tile> tiles;
+    std::vector<Asset> assets;
     sf::IntRect left_exit;
     sf::IntRect right_exit;
     sf::IntRect up_exit;
@@ -80,7 +96,7 @@ struct Room
     sf::IntRect stringToIntRect(std::string tileID);
     void unload();
     void load(std::string& new_room);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, bool hitboxes);
 };
 
 struct State
@@ -94,13 +110,14 @@ struct State
     bool move_player_left;
     bool move_player_right;
     bool playerMoving;
+    bool hitboxes;
     dir lastPressed;
     std::vector<sf::FloatRect> door_hitboxes;
 
     State();
     void draw(sf::RenderWindow& window);
     void room_transition();
-    void collisions();
+    void collisions(bool isX);
     void update(float elapsed);
 };
 
@@ -132,6 +149,15 @@ Tile::Tile(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect
     this->name = name;
 }
 
+Asset::Asset(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRect, std::string name, sf::Vector2f size) : sprite(texture)
+{
+    sprite = sf::Sprite(texture);
+    sprite.setTextureRect(textureRect);
+    this->pos = pos;
+    this->name = name;
+    this->size = size;
+}
+
 Room::Room(std::string& filename)
 {
     load(filename);
@@ -146,6 +172,7 @@ State::State() : room(room1)
     move_player_right = false;
     lastPressed = UP;
     playerMoving = false;
+    hitboxes = false;
     door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
     door_hitboxes.push_back(sf::FloatRect({7 * 32.f, 3 * 32.f}, {-13.f, -1 * 32.f}));
 }
@@ -153,16 +180,19 @@ State::State() : room(room1)
 
 // draw
 
-void Player::draw(sf::RenderWindow& window)
+void Player::draw(sf::RenderWindow& window, bool hitboxes)
 {
     sprite.setPosition(pos);
     window.draw(sprite);
-    sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
-    hb.setPosition(hitbox.position);
-    hb.setOutlineColor(sf::Color::White);
-    hb.setOutlineThickness(1.f);
-    hb.setFillColor(sf::Color::Transparent);
-    window.draw(hb);
+    if (hitboxes)
+    {
+        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+        hb.setPosition(hitbox.position);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+    }
 }
 
 void Tile::draw(sf::RenderWindow& window)
@@ -171,61 +201,78 @@ void Tile::draw(sf::RenderWindow& window)
     window.draw(sprite);
 }
 
-void Room::draw(sf::RenderWindow& window)
+void Asset::draw(sf::RenderWindow& window)
+{
+    sprite.setPosition(pos);
+    window.draw(sprite);
+}
+
+void Room::draw(sf::RenderWindow& window, bool hitboxes)
 {
     for (auto& tile : tiles)
         tile.draw(window);
+    for (auto& asset : assets)
+        asset.draw(window);
 
-    sf::Vector2f sizeL = {(float)left_exit.size.x, (float)left_exit.size.y};
-    sf::Vector2f posL = {(float)left_exit.position.x, (float)left_exit.position.y};
-    sf::RectangleShape hb = sf::RectangleShape(sizeL);
-    hb.setPosition(posL);
-    hb.setOutlineColor(sf::Color::White);
-    hb.setOutlineThickness(1.f);
-    hb.setFillColor(sf::Color::Transparent);
-    window.draw(hb);
+    if (hitboxes)
+    {
+        sf::Vector2f sizeL = {(float)left_exit.size.x, (float)left_exit.size.y};
+        sf::Vector2f posL = {(float)left_exit.position.x, (float)left_exit.position.y};
+        sf::RectangleShape hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
 
-    sizeL = {(float)right_exit.size.x, (float)right_exit.size.y};
-    posL = {(float)right_exit.position.x, (float)right_exit.position.y};
-    hb = sf::RectangleShape(sizeL);
-    hb.setPosition(posL);
-    hb.setOutlineColor(sf::Color::White);
-    hb.setOutlineThickness(1.f);
-    hb.setFillColor(sf::Color::Transparent);
-    window.draw(hb);
+        sizeL = {(float)right_exit.size.x, (float)right_exit.size.y};
+        posL = {(float)right_exit.position.x, (float)right_exit.position.y};
+        hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
 
-    sizeL = {(float)up_exit.size.x, (float)up_exit.size.y};
-    posL = {(float)up_exit.position.x, (float)up_exit.position.y};
-    hb = sf::RectangleShape(sizeL);
-    hb.setPosition(posL);
-    hb.setOutlineColor(sf::Color::White);
-    hb.setOutlineThickness(1.f);
-    hb.setFillColor(sf::Color::Transparent);
-    window.draw(hb);
+        sizeL = {(float)up_exit.size.x, (float)up_exit.size.y};
+        posL = {(float)up_exit.position.x, (float)up_exit.position.y};
+        hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
 
-    sizeL = {(float)down_exit.size.x, (float)down_exit.size.y};
-    posL = {(float)down_exit.position.x, (float)down_exit.position.y};
-    hb = sf::RectangleShape(sizeL);
-    hb.setPosition(posL);
-    hb.setOutlineColor(sf::Color::White);
-    hb.setOutlineThickness(1.f);
-    hb.setFillColor(sf::Color::Transparent);
-    window.draw(hb);
+        sizeL = {(float)down_exit.size.x, (float)down_exit.size.y};
+        posL = {(float)down_exit.position.x, (float)down_exit.position.y};
+        hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+    }
 }
 
 void State::draw(sf::RenderWindow& window)
 {
-    room.draw(window);
-    player.draw(window);
+    room.draw(window, hitboxes);
+    player.draw(window, hitboxes);
 
-    for (auto& hb : door_hitboxes)
+    if (hitboxes && 
+        (roomname == "Risorse/maps/room1.json"
+        || roomname == "Risorse/maps/room2.json"
+        || roomname == "Risorse/maps/room4.json"))
     {
-        sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
-        hitbox.setPosition(hb.position);
-        hitbox.setOutlineColor(sf::Color::White);
-        hitbox.setOutlineThickness(1.f);
-        hitbox.setFillColor(sf::Color::Transparent);
-        window.draw(hitbox);
+        for (auto& hb : door_hitboxes)
+        {
+            sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
+            hitbox.setPosition(hb.position);
+            hitbox.setOutlineColor(sf::Color::White);
+            hitbox.setOutlineThickness(1.f);
+            hitbox.setFillColor(sf::Color::Transparent);
+            window.draw(hitbox);
+        }
     }
 }
 
@@ -301,6 +348,16 @@ void Player::enter_down_pos()
 {
     pos.y = 3 * 32 - 15.f;
     hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+    if (hitbox.position.x < 173.f)
+    {
+        hitbox.position.x = 173.f;
+        pos.x = hitbox.position.x + 5.f;
+    }
+    if (hitbox.position.x + hitbox.size.x > 211.f)
+    {
+        hitbox.position.x = 211.f - hitbox.size.x;
+        pos.x = hitbox.position.x + 5.f;
+    }
 }
 
 sf::IntRect Room::stringToIntRect(std::string tileID)
@@ -364,6 +421,7 @@ sf::IntRect Room::stringToIntRect(std::string tileID)
 void Room::unload()
 {
     tiles.clear();
+    assets.clear();
 
     left_exit = sf::IntRect();
     right_exit = sf::IntRect();
@@ -389,6 +447,7 @@ void Room::load(std::string& new_room)
     file >> mapData;
 
     roomTexture = sf::Texture(all_tiles);
+    assetsTexture = sf::Texture(all_assets);
     for (int ty = 0; ty < floor_tile_num.y; ty++)
     {
         for (int tx = 0; tx < floor_tile_num.x; tx++)
@@ -469,6 +528,30 @@ void Room::load(std::string& new_room)
                                 {mapData["exits"]["down"]["size"][0].get<int>() * 32, mapData["exits"]["down"]["size"][1].get<int>()});
         room_down = mapData["exits"]["down"]["room"];
     };
+
+    if (mapData.contains("assets"))
+    {
+        for (auto& [asset, fields] : mapData["assets"].items())
+        {
+            sf::Vector2f pos;
+            sf::Vector2i size;
+            sf::Vector2i texturePos;
+            if (fields.contains("pos")) {
+                pos.x = fields["pos"][0].get<float>();
+                pos.y = fields["pos"][1].get<float>();
+            }
+            if (fields.contains("size")) {
+                size.x = fields["size"][0].get<int>();
+                size.y = fields["size"][1].get<int>();
+            }
+            if (fields.contains("spritepos")) {
+                texturePos.x = fields["spritepos"][0].get<int>();
+                texturePos.y = fields["spritepos"][1].get<int>();
+            }
+            sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
+            assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), asset, fsize));
+        }
+    }
 }
 
 void State::room_transition()
@@ -540,7 +623,7 @@ void State::room_transition()
     }
 }
 
-void State::collisions()
+void State::collisions(bool isX)
 {
     for (auto& tile : room.tiles)
     {
@@ -549,13 +632,13 @@ void State::collisions()
             || tile.name.find("RIGHTDOOR") != std::string::npos)
         {
             sf::FloatRect tileBounds = tile.sprite.getGlobalBounds();
-            sf::FloatRect intersecRect;
             if (auto intersecOp = player.hitbox.findIntersection(tileBounds))
             {
-                intersecRect = *intersecOp;
+                sf::FloatRect intersecRect = *intersecOp;
                 sf::Vector2f playerCenter = player.hitbox.getCenter();
                 sf::Vector2f tileCenter = tileBounds.getCenter();
-                if (intersecRect.size.x < intersecRect.size.y)
+
+                if (isX)
                 {
                     // going to the right
                     if (playerCenter.x < tileCenter.x) {
@@ -581,6 +664,40 @@ void State::collisions()
             }
         }
     }
+    for (auto& asset : room.assets)
+    {
+        sf::FloatRect assetBounds = asset.sprite.getGlobalBounds();
+        if (auto intersecOp = player.hitbox.findIntersection(assetBounds))
+        {
+            sf::FloatRect intersecRect = *intersecOp;
+            sf::Vector2f playerCenter = player.hitbox.getCenter();
+            sf::Vector2f assetCenter = assetBounds.getCenter();
+
+            if (isX)
+            {
+                // going to the right
+                if (playerCenter.x < assetCenter.x) {
+                    player.pos.x -= intersecRect.size.x;
+                }
+                // going to the left
+                else {
+                    player.pos.x += intersecRect.size.x;
+                }
+            }
+            else
+            {
+                // going down
+                if (playerCenter.y < assetCenter.y) {
+                    player.pos.y -= intersecRect.size.y;
+                }
+                // going up
+                else {
+                    player.pos.y += intersecRect.size.y;
+                }
+            }
+            player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
+        }
+    }
     if (roomname == "Risorse/maps/room1.json"
         || roomname == "Risorse/maps/room2.json"
         || roomname == "Risorse/maps/room4.json")
@@ -599,14 +716,18 @@ void State::collisions()
 
 void State::update(float elapsed)
 {
-    if (move_player_up)
-        player.move_up(elapsed);
-    if (move_player_down)
-        player.move_down(elapsed);
     if (move_player_left)
         player.move_left(elapsed);
     if (move_player_right)
         player.move_right(elapsed);
+    collisions(true);
+
+    if (move_player_up)
+        player.move_up(elapsed);
+    if (move_player_down)
+        player.move_down(elapsed);
+    collisions(false);
+    
     if (!playerMoving)
     {
         int row = 0;
@@ -628,7 +749,6 @@ void State::update(float elapsed)
         player.animation(row, idleFrameTime);
     }
     room_transition();
-    collisions();
 }
 
 // eventi
@@ -677,6 +797,9 @@ void handle(const sf::Event::KeyPressed& key, State& state)
         case sf::Keyboard::Scancode::Right:
             state.move_player_right = true;
             state.playerMoving = true;
+            return;
+        case sf::Keyboard::Scancode::H:
+            state.hitboxes = !state.hitboxes;
             return;
         default:
             return;

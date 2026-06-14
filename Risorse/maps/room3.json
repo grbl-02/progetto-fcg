@@ -16,5 +16,12 @@
             "size" : [2, 1],
             "room" : "Risorse/maps/room2.json"
         }
+    },
+    "assets" : {
+        "chest" : {
+            "spritepos" : [164, 32],
+            "pos" : [176.5, 80],
+            "size" : [31, 27]
+        }
     }
 }
