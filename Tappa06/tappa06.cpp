@@ -22,6 +22,7 @@ const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.
 const sf::Vector2f displacement = {0.0, 0.0};
 const sf::Vector2i floor_tile_num = {12, 9};
 std::string room1 = "Risorse/maps/room1.json";
+const float fireball_speed = 100.0;
 
 // oggetti
 const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";
@@ -29,6 +30,7 @@ const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png
 // nemici
 const char* blueSlime = "Risorse/sprites/characters/slime.png";
 const char* redSlime = "Risorse/sprites/characters/redslime.png";
+const char* fireballSprites = "Risorse/sprites/characters/fireballs.png";
 const float jumpdist = 64.f;
 const float jumptime = 0.5f;
 const float cooldown = 1.0f;
@@ -97,6 +99,17 @@ struct Asset
     void draw(sf::RenderWindow& window);
 };
 
+struct Fireball
+{
+    sf::Sprite sprite;
+    sf::Vector2f pos;
+    sf::Vector2f direction;
+
+    Fireball(const sf::Texture& texture, sf::IntRect textureRect, sf::Vector2f pos, sf::Vector2f direction);
+    void goTowardsPlayer(float elapsed);
+    void draw(sf::RenderWindow& window);
+};
+
 struct Enemy
 {
     sf::Texture texture;
@@ -122,7 +135,7 @@ struct Enemy
     virtual void enemy_logic(const Player& player, float elapsed) {};
     void animation(int row, float frameTime);
     virtual void onCollisionResponse() {};
-    void draw(sf::RenderWindow& window, bool hitboxes);
+    virtual void draw(sf::RenderWindow& window, bool hitboxes);
 };
 
 struct BlueSlime : Enemy
@@ -134,10 +147,16 @@ struct BlueSlime : Enemy
 
 struct RedSlime : Enemy
 {
+    sf::Texture fireballTexture;
+    std::vector<Fireball> fireballs;
+    bool hasShot;
+
     RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir);
-    
+
     void enemy_logic(const Player& player, float elapsed) override;
-    void spitfire();
+    void spitFire(const Player& player);
+    void deleteFire();
+    void draw(sf::RenderWindow& window, bool hitboxes) override;
 };
 
 struct Room
@@ -227,6 +246,14 @@ Asset::Asset(sf::Vector2f pos, const sf::Texture& texture, sf::IntRect textureRe
     this->size = size;
 }
 
+Fireball::Fireball(const sf::Texture& texture, sf::IntRect textureRect, sf::Vector2f pos, sf::Vector2f direction) : sprite(texture)
+{
+    sprite = sf::Sprite(texture);
+    sprite.setTextureRect(textureRect);
+    this->pos = pos;
+    this->direction = direction;
+}
+
 Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir) : sprite(texture)
 {
     sprite = sf::Sprite(texture);
@@ -253,7 +280,8 @@ BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
 
 RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
         : Enemy(pos, texture, "redSlime", enemyDir) {
-    
+    fireballTexture = sf::Texture(fireballSprites);
+    hasShot = false;
 }
 
 Room::Room(std::string& filename)
@@ -305,6 +333,12 @@ void Asset::draw(sf::RenderWindow& window)
     window.draw(sprite);
 }
 
+void Fireball::draw(sf::RenderWindow& window)
+{
+    sprite.setPosition(pos);
+    window.draw(sprite);
+}
+
 void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
 {
     sprite.setPosition(pos);
@@ -327,6 +361,13 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
         hb.setFillColor(sf::Color::Transparent);
         window.draw(hb);
     }
+}
+
+void RedSlime::draw(sf::RenderWindow& window, bool hitboxes)
+{
+    Enemy::draw(window, hitboxes);
+    for (auto& fireball : fireballs)
+        fireball.draw(window);
 }
 
 void Room::draw(sf::RenderWindow& window, bool hitboxes)
@@ -484,6 +525,11 @@ void Player::enter_down_pos()
     }
 }
 
+void Fireball::goTowardsPlayer(float elapsed)
+{
+    pos = pos + (direction * fireball_speed * elapsed);
+}
+
 void BlueSlime::jump_towards_player(sf::Vector2f playerPos, float elapsed)
 {
     if (!isJumping)
@@ -604,14 +650,16 @@ void RedSlime::enemy_logic(const Player& player, float elapsed)
             isJumping = true;
             cooldownTimer = 0.f;
             jump_animation_frame = 0;
+            hasShot = false;
         }
     }
     else
     {
         jumptimer += elapsed;
-        if (animation_frame == 3)
+        if (jump_animation_frame == 3 && !hasShot)
         {
-            spitfire();
+            spitFire(player);
+            hasShot = true;
         }
         if (jumptimer >= jumptime)
         {
@@ -623,9 +671,32 @@ void RedSlime::enemy_logic(const Player& player, float elapsed)
     }
 }
 
-void RedSlime::spitfire()
+void RedSlime::spitFire(const Player& player)
 {
+    sf::Vector2f direction = player.pos - pos;
+    float length = direction.length();
+    if (length > 0.f)
+        direction /= length;
+    else
+        return;
+    fireballs.push_back(Fireball(fireballTexture, sf::IntRect({2, 2}, {8, 8}), pos, direction));
+}
 
+void RedSlime::deleteFire()
+{
+    for (int i = 0; i < fireballs.size(); )
+    {
+        if (fireballs[i].pos.x > 384.f || fireballs[i].pos.y > 288.f
+            || fireballs[i].pos.x < 0.f || fireballs[i].pos.y < 0.f)
+        {
+            std::swap(fireballs[i], fireballs.back());
+            fireballs.pop_back();
+        }
+        else
+        {
+            i++;
+        }
+    }
 }
 
 sf::IntRect Room::stringToIntRect(std::string tileID)
@@ -1156,6 +1227,15 @@ void State::update(float elapsed)
     for (auto& enemy : room.enemies)
     {
         enemy->enemy_logic(player, elapsed);
+        if (enemy->name == "redSlime")
+        {
+            RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
+            for (auto& fireball : redSlime->fireballs)
+            {
+                fireball.goTowardsPlayer(elapsed);
+            }
+            redSlime->deleteFire();
+        }
     }
 
     room.enemyCollisions();
