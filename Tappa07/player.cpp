@@ -17,6 +17,7 @@ Player::Player() : sprite(texture)
     hitbox = sf::FloatRect({pos.x - 5.f, pos.y + 15.f}, {10.f, 3.f});
     direction = UP;
     isAttacking = false;
+    slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
 }
 
 void Player::draw(sf::RenderWindow& window, bool hitboxes)
@@ -31,6 +32,13 @@ void Player::draw(sf::RenderWindow& window, bool hitboxes)
         hb.setOutlineThickness(1.f);
         hb.setFillColor(sf::Color::Transparent);
         window.draw(hb);
+
+        sf::RectangleShape slashHB = sf::RectangleShape(slashHitbox.size);
+        slashHB.setPosition(slashHitbox.position);
+        slashHB.setOutlineColor(sf::Color::Red);
+        slashHB.setOutlineThickness(1.f);
+        slashHB.setFillColor(sf::Color::Transparent);
+        window.draw(slashHB);
     }
 }
 
@@ -47,6 +55,8 @@ void Player::animation(int row, float frameTime)
                 sprite.setScale({-1.f, 1.f});
             else
                 sprite.setScale({1.f, 1.f});
+            if (attack_animation_frame == 1) slash();
+            else if (attack_animation_frame == 2) unslash();
             aaf_no_mod = aaf_no_mod + 1;
             attack_animation_frame = (attack_animation_frame + 1) % 4;
             if (aaf_no_mod > 3)
@@ -124,6 +134,22 @@ void Player::attack(float elapsed)
         default: break;
     }
     animation(row, movFrameTime);
+}
+
+void Player::slash()
+{
+    switch (direction) {
+        case LEFT: slashHitbox = sf::FloatRect({pos.x - 18.f, pos.y + 8.f}, {11.f, 13.f}); break;
+        case RIGHT: slashHitbox = sf::FloatRect({pos.x + 7.f, pos.y + 8.f}, {11.f, 13.f}); break;
+        case UP: slashHitbox = sf::FloatRect({pos.x - 10.f, pos.y -2.f}, {19.f, 11.f}); break;
+        case DOWN: slashHitbox = sf::FloatRect({pos.x - 7.f, pos.y + 13.f}, {19.f, 11.f}); break;
+        default: break;
+    }
+}
+
+void Player::unslash()
+{
+    slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
 }
 
 void Player::enter_left_pos()

@@ -22,5 +22,6 @@ struct State
     void draw(sf::RenderWindow& window);
     void room_transition();
     void collisions(bool isX);
+    void hit();
     void update(float elapsed);
 };

@@ -195,6 +195,17 @@ void State::collisions(bool isX)
     }
 }
 
+void State::hit()
+{
+    for (auto& enemy : room.enemies)
+    {
+        if (player.slashHitbox.findIntersection(enemy->hurtbox))
+        {
+            
+        }
+    }
+}
+
 void State::update(float elapsed)
 {
     if (playerAttacks)

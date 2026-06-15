@@ -15,6 +15,7 @@ struct Player
     bool isAttacking;
     int attack_animation_frame = 0;
     int aaf_no_mod = 0;
+    sf::FloatRect slashHitbox;
 
     Player();
     void draw(sf::RenderWindow& window, bool hitboxes);
@@ -24,6 +25,8 @@ struct Player
     void move_left(float elapsed);
     void move_right(float elapsed);
     void attack(float elapsed);
+    void slash();
+    void unslash();
     void enter_left_pos();
     void enter_right_pos();
     void enter_up_pos();
