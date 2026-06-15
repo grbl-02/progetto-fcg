@@ -185,6 +185,7 @@ struct Room
     void unload();
     void load(std::string& new_room);
     void enemyCollisions();
+    void enemyWallCollisions();
     void draw(sf::RenderWindow& window, bool hitboxes);
 };
 
@@ -1029,6 +1030,64 @@ void Room::enemyCollisions()
     }
 }
 
+void Room::enemyWallCollisions()
+{
+    for (auto& enemy : enemies)
+    {
+        if (enemy->name == "blueSlime")
+        {
+            BlueSlime* blueSlime = static_cast<BlueSlime*>(enemy.get());
+            sf::FloatRect left_exit_f = sf::FloatRect({(float)left_exit.position.x, (float)left_exit.position.y}, {(float)left_exit.size.x, (float)left_exit.size.y});
+            sf::FloatRect right_exit_f = sf::FloatRect({(float)right_exit.position.x, (float)right_exit.position.y}, {(float)right_exit.size.x, (float)right_exit.size.y});
+            sf::FloatRect up_exit_f = sf::FloatRect({(float)up_exit.position.x, (float)up_exit.position.y}, {(float)up_exit.size.x, (float)up_exit.size.y});
+            sf::FloatRect down_exit_f = sf::FloatRect({(float)down_exit.position.x, (float)down_exit.position.y}, {(float)down_exit.size.x, (float)down_exit.size.y});
+            auto exits = {left_exit_f, right_exit_f, up_exit_f, down_exit_f};
+            std::optional<sf::FloatRect> intersecOp;
+            sf::FloatRect collisionExit;
+            for (const auto& exit : exits)
+            {
+                if (auto hit = blueSlime->hitbox.findIntersection(exit)) {
+                    intersecOp = hit;
+                    collisionExit = exit;
+                    break;
+                }
+            }
+            if (intersecOp)
+            {
+                sf::FloatRect intersecRect = *intersecOp;
+                sf::Vector2f enemyCenter = enemy->hitbox.getCenter();
+                sf::Vector2f exitCenter = collisionExit.getCenter();
+                if (intersecRect.size.x < intersecRect.size.y)
+                {
+                    // going to the right
+                    if (enemyCenter.x < exitCenter.x) {
+                        enemy->pos.x -= intersecRect.size.x;
+                    }
+                    // going to the left
+                    else {
+                        enemy->pos.x += intersecRect.size.x;
+                    }
+                }
+                else
+                {
+                    // going down
+                    if (enemyCenter.y < exitCenter.y) {
+                        enemy->pos.y -= intersecRect.size.y;
+                    }
+                    // going up
+                    else {
+                        enemy->pos.y += intersecRect.size.y;
+                    }
+                }
+                blueSlime->isJumping = false;
+                blueSlime->cooldownTimer = 0.f; 
+                blueSlime->animation_frame = 0;
+                enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
+            }
+        }
+    }
+}
+
 void State::room_transition()
 {
     
@@ -1239,6 +1298,7 @@ void State::update(float elapsed)
     }
 
     room.enemyCollisions();
+    room.enemyWallCollisions();
     room_transition();
 }
 
