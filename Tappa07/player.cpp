@@ -15,6 +15,8 @@ Player::Player() : sprite(texture)
     isLeft = false;
     animation_clock.start();
     hitbox = sf::FloatRect({pos.x - 5.f, pos.y + 15.f}, {10.f, 3.f});
+    direction = UP;
+    isAttacking = false;
 }
 
 void Player::draw(sf::RenderWindow& window, bool hitboxes)
@@ -34,7 +36,27 @@ void Player::draw(sf::RenderWindow& window, bool hitboxes)
 
 void Player::animation(int row, float frameTime)
 {
-    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    if (isAttacking)
+    {
+        if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+        {
+            animation_clock.restart();
+            sf::IntRect curFrame = sf::IntRect({attack_animation_frame * 48, row * 48}, {48, 48});
+            sprite.setTextureRect(curFrame);
+            if (direction == LEFT)
+                sprite.setScale({-1.f, 1.f});
+            else
+                sprite.setScale({1.f, 1.f});
+            aaf_no_mod = aaf_no_mod + 1;
+            attack_animation_frame = (attack_animation_frame + 1) % 4;
+            if (aaf_no_mod > 3)
+            {
+                isAttacking = false;
+                aaf_no_mod = 0;
+            }
+        }
+    }
+    else if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
     {
         animation_clock.restart();
         sf::IntRect curFrame = sf::IntRect({animation_frame * 48, row * 48}, {48, 48});
@@ -52,6 +74,7 @@ void Player::move_up(float elapsed)
     pos.y -= player_speed * elapsed;
     hitbox.position.y -= player_speed * elapsed;
     isLeft = false;
+    direction = UP;
     animation(5, movFrameTime);
 }
 
@@ -60,6 +83,7 @@ void Player::move_down(float elapsed)
     pos.y += player_speed * elapsed;
     hitbox.position.y += player_speed * elapsed;
     isLeft = false;
+    direction = DOWN;
     animation(3, movFrameTime);
 }
 
@@ -68,6 +92,7 @@ void Player::move_left(float elapsed)
     pos.x -= player_speed * elapsed;
     hitbox.position.x -= player_speed * elapsed;
     isLeft = true;
+    direction = LEFT;
     animation(4, movFrameTime);
 }
 
@@ -76,7 +101,29 @@ void Player::move_right(float elapsed)
     pos.x += player_speed * elapsed;
     hitbox.position.x += player_speed * elapsed;
     isLeft = false;
+    direction = RIGHT;
     animation(4, movFrameTime);
+}
+
+void Player::attack(float elapsed)
+{
+    if (!isAttacking)
+    {
+        isAttacking = true;
+        attack_animation_frame = 0;
+        aaf_no_mod = 0;
+        animation_clock.restart();
+    }
+    int row = 0;
+    switch (direction)
+    {
+        case LEFT: row = 7; break;
+        case RIGHT: row = 7; break;
+        case UP: row = 8; break;
+        case DOWN: row = 6; break;
+        default: break;
+    }
+    animation(row, movFrameTime);
 }
 
 void Player::enter_left_pos()

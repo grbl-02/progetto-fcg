@@ -51,6 +51,9 @@ void handle(const sf::Event::KeyPressed& key, State& state)
         case sf::Keyboard::Scancode::H:
             state.hitboxes = !state.hitboxes;
             return;
+        case sf::Keyboard::Scancode::X:
+            state.playerAttacks = true;
+            return;
         default:
             return;
     }

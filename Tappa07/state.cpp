@@ -8,6 +8,7 @@ State::State() : room(room1)
     move_player_left = false;
     move_player_right = false;
     lastPressed = UP;
+    playerAttacks = false;
     playerMoving = false;
     hitboxes = false;
 }
@@ -196,39 +197,56 @@ void State::collisions(bool isX)
 
 void State::update(float elapsed)
 {
-    if (move_player_left)
-        player.move_left(elapsed);
-    if (move_player_right)
-        player.move_right(elapsed);
-    collisions(true);
-
-    if (move_player_up)
-        player.move_up(elapsed);
-    if (move_player_down)
-        player.move_down(elapsed);
-    collisions(false);
-
-    if (!playerMoving)
+    if (playerAttacks)
     {
-        int row = 0;
-        switch (lastPressed)
+        /*
+        move_player_left = false;
+        move_player_right = false;
+        move_player_up = false;
+        move_player_down = false;
+        playerMoving = false;
+        */
+        player.attack(elapsed);
+        if (!player.isAttacking)
         {
-            case UP:
-                row = 2;
-                break;
-            case DOWN:
-                row = 0;
-                break;
-            case LEFT:
-                row = 1;
-                break;
-            case RIGHT:
-                row = 1;
-                break;
+            playerAttacks = false;
         }
-        player.animation(row, idleFrameTime);
     }
+    else
+    {
+        if (move_player_left)
+            player.move_left(elapsed);
+        if (move_player_right)
+            player.move_right(elapsed);
+        collisions(true);
 
+        if (move_player_up)
+            player.move_up(elapsed);
+        if (move_player_down)
+            player.move_down(elapsed);
+        collisions(false);
+
+        if (!playerMoving)
+        {
+            int row = 0;
+            switch (lastPressed)
+            {
+                case UP:
+                    row = 2;
+                    break;
+                case DOWN:
+                    row = 0;
+                    break;
+                case LEFT:
+                    row = 1;
+                    break;
+                case RIGHT:
+                    row = 1;
+                    break;
+            }
+            player.animation(row, idleFrameTime);
+        }
+    }
     for (auto& enemy : room.enemies)
     {
         enemy->enemy_logic(player, elapsed);

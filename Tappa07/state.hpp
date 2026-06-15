@@ -13,6 +13,7 @@ struct State
     bool move_player_down;
     bool move_player_left;
     bool move_player_right;
+    bool playerAttacks;
     bool playerMoving;
     bool hitboxes;
     dir lastPressed;
