@@ -1,0 +1,114 @@
+#include "player.hpp"
+
+Player::Player() : sprite(texture)
+{
+    texture = sf::Texture(player_texture);
+    sprite = sf::Sprite(texture);
+    sprite.setTextureRect(sf::IntRect({0, 96}, {48, 48}));
+    float sx = (float)sprite.getTextureRect().size.x;
+    float sy = (float)sprite.getTextureRect().size.y;
+    sprite.setOrigin({sx / 2.f, sy / 2.f});
+    float px = (float)window_width / (3.f * 2.f);
+    float py = (float)window_height / 3.f - sy / 2.f + 6.f;
+    pos = {px, py};
+    speed = player_speed;
+    isLeft = false;
+    animation_clock.start();
+    hitbox = sf::FloatRect({pos.x - 5.f, pos.y + 15.f}, {10.f, 3.f});
+}
+
+void Player::draw(sf::RenderWindow& window, bool hitboxes)
+{
+    sprite.setPosition(pos);
+    window.draw(sprite);
+    if (hitboxes)
+    {
+        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+        hb.setPosition(hitbox.position);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+    }
+}
+
+void Player::animation(int row, float frameTime)
+{
+    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    {
+        animation_clock.restart();
+        sf::IntRect curFrame = sf::IntRect({animation_frame * 48, row * 48}, {48, 48});
+        sprite.setTextureRect(curFrame);
+        if (isLeft)
+            sprite.setScale({-1.f, 1.f});
+        else
+            sprite.setScale({1.f, 1.f});
+        animation_frame = (animation_frame + 1) % 6;
+    }
+}
+
+void Player::move_up(float elapsed)
+{
+    pos.y -= player_speed * elapsed;
+    hitbox.position.y -= player_speed * elapsed;
+    isLeft = false;
+    animation(5, movFrameTime);
+}
+
+void Player::move_down(float elapsed)
+{
+    pos.y += player_speed * elapsed;
+    hitbox.position.y += player_speed * elapsed;
+    isLeft = false;
+    animation(3, movFrameTime);
+}
+
+void Player::move_left(float elapsed)
+{
+    pos.x -= player_speed * elapsed;
+    hitbox.position.x -= player_speed * elapsed;
+    isLeft = true;
+    animation(4, movFrameTime);
+}
+
+void Player::move_right(float elapsed)
+{
+    pos.x += player_speed * elapsed;
+    hitbox.position.x += player_speed * elapsed;
+    isLeft = false;
+    animation(4, movFrameTime);
+}
+
+void Player::enter_left_pos()
+{
+    pos.x = 12 * 32 - 5.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
+void Player::enter_right_pos()
+{
+    pos.x = 5.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
+void Player::enter_up_pos()
+{
+    pos.y = (float)window_height / 3.f - (float)sprite.getTextureRect().size.y / 2.f + 6.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+}
+
+void Player::enter_down_pos()
+{
+    pos.y = 3 * 32 - 15.f;
+    hitbox.position = {pos.x - 5.f, pos.y + 15.f};
+    if (hitbox.position.x < 173.f)
+    {
+        hitbox.position.x = 173.f;
+        pos.x = hitbox.position.x + 5.f;
+    }
+    if (hitbox.position.x + hitbox.size.x > 211.f)
+    {
+        hitbox.position.x = 211.f - hitbox.size.x;
+        pos.x = hitbox.position.x + 5.f;
+    }
+}
