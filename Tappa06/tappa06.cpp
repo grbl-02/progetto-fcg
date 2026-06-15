@@ -106,6 +106,7 @@ struct Enemy
     int jump_animation_frame = 0;
     sf::Clock animation_clock;
     FloatCircle aggro_range;
+    sf::FloatRect hitbox;
 
     bool isJumping;
     float jumptimer;
@@ -123,12 +124,14 @@ struct Enemy
 
 struct Room
 {
+    std::string name;
     sf::Texture roomTexture;
     sf::Texture assetsTexture;
     sf::Texture slimeTexture;
     std::vector<Tile> tiles;
     std::vector<Asset> assets;
     std::vector<Enemy> enemies;
+    std::vector<sf::FloatRect> door_hitboxes;
     sf::IntRect left_exit;
     sf::IntRect right_exit;
     sf::IntRect up_exit;
@@ -160,7 +163,6 @@ struct State
     bool playerMoving;
     bool hitboxes;
     dir lastPressed;
-    std::vector<sf::FloatRect> door_hitboxes;
 
     State();
     void draw(sf::RenderWindow& window);
@@ -223,10 +225,13 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     jumpStart = {0.f, 0.f};
     jumpTarget = {0.f, 0.f};
     this->enemyDir = enemyDir;
+    hitbox = sf::FloatRect({pos.x - 7.f, pos.y + 4.f}, {13.f, 2.f});
 }
 
 Room::Room(std::string& filename)
 {
+    door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
+    door_hitboxes.push_back(sf::FloatRect({7 * 32.f, 3 * 32.f}, {-13.f, -1 * 32.f}));
     load(filename);
 }
 
@@ -240,8 +245,6 @@ State::State() : room(room1)
     lastPressed = UP;
     playerMoving = false;
     hitboxes = false;
-    door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
-    door_hitboxes.push_back(sf::FloatRect({7 * 32.f, 3 * 32.f}, {-13.f, -1 * 32.f}));
 }
 
 
@@ -288,6 +291,13 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
         aggro.setOutlineThickness(1.f);
         aggro.setFillColor(sf::Color::Transparent);
         window.draw(aggro);
+
+        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+        hb.setPosition(hitbox.position);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
     }
 }
 
@@ -350,7 +360,7 @@ void State::draw(sf::RenderWindow& window)
         || roomname == "Risorse/maps/room2.json"
         || roomname == "Risorse/maps/room4.json"))
     {
-        for (auto& hb : door_hitboxes)
+        for (auto& hb : room.door_hitboxes)
         {
             sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
             hitbox.setPosition(hb.position);
@@ -495,65 +505,30 @@ void Enemy::enemy_logic(Player player, float elapsed)
 
     if (isJumping) {
         jump_towards_player(player.pos, elapsed);
-        int row;
-        switch (enemyDir) {
-            case LEFT:
-                row = 4;
-                break;
-            case RIGHT:
-                row = 4;
-                break;
-            case UP:
-                row = 5;
-                break;
-            case DOWN:
-                row = 3;
-                break;
-            default:
-                break;
-        }
-        animation(row, slimeMovFrameTime);
     }
     else if (intersects(aggro_range, player.pos) && cooldownTimer >= cooldown)
     {
         jump_towards_player(player.pos, elapsed);
-        int row;
+    }
+
+    int row = 0;
+    if (isJumping)
+    {
         switch (enemyDir) {
-            case LEFT:
-                row = 4;
-                break;
-            case RIGHT:
-                row = 4;
-                break;
-            case UP:
-                row = 5;
-                break;
-            case DOWN:
-                row = 3;
-                break;
-            default:
-                break;
+            case LEFT: row = 4; break;
+            case RIGHT: row = 4; break;
+            case UP: row = 5; break;
+            case DOWN: row = 3; break;
         }
         animation(row, slimeMovFrameTime);
     }
     else
     {
-        int row;
         switch (enemyDir) {
-            case LEFT:
-                row = 1;
-                break;
-            case RIGHT:
-                row = 1;
-                break;
-            case UP:
-                row = 2;
-                break;
-            case DOWN:
-                row = 0;
-                break;
-            default:
-                break;
+            case LEFT: row = 1; break;
+            case RIGHT: row = 1; break;
+            case UP: row = 2; break;
+            case DOWN: row = 0; break;
         }
         animation(row, idleFrameTime);
     }
@@ -663,6 +638,7 @@ void Room::unload()
 
 void Room::load(std::string& new_room)
 {
+    name = new_room;
     std::ifstream file(new_room);
 
     if (!file.is_open())
@@ -817,7 +793,103 @@ void Room::load(std::string& new_room)
 
 void Room::enemyCollisions()
 {
-
+    for (auto& enemy : enemies)
+    {
+        for (auto& tile : tiles)
+        {
+            if (tile.name.find("WALL") != std::string::npos
+                || tile.name.find("LEFTDOOR") != std::string::npos
+                || tile.name.find("RIGHTDOOR") != std::string::npos)
+            {
+                sf::FloatRect tileBounds = tile.sprite.getGlobalBounds();
+                if (auto intersecOp = enemy.hitbox.findIntersection(tileBounds))
+                {
+                    sf::FloatRect intersecRect = *intersecOp;
+                    sf::Vector2f enemyCenter = enemy.hitbox.getCenter();
+                    sf::Vector2f tileCenter = tileBounds.getCenter();
+                    if (intersecRect.size.x < intersecRect.size.y)
+                    {
+                        // going to the right
+                        if (enemyCenter.x < tileCenter.x) {
+                            enemy.pos.x -= intersecRect.size.x;
+                        }
+                        // going to the left
+                        else {
+                            enemy.pos.x += intersecRect.size.x;
+                        }
+                    }
+                    else
+                    {
+                        // going down
+                        if (enemyCenter.y < tileCenter.y) {
+                            enemy.pos.y -= intersecRect.size.y;
+                        }
+                        // going up
+                        else {
+                            enemy.pos.y += intersecRect.size.y;
+                        }
+                    }
+                    enemy.isJumping = false;
+                    enemy.cooldownTimer = 0.f; 
+                    enemy.animation_frame = 0;
+                }
+                enemy.hitbox.position = {enemy.pos.x - 7.f, enemy.pos.y + 4.f};
+            }
+        }
+        for (auto& asset : assets)
+        {
+            sf::FloatRect assetBounds = asset.sprite.getGlobalBounds();
+            if (auto intersecOp = enemy.hitbox.findIntersection(assetBounds))
+            {
+                sf::FloatRect intersecRect = *intersecOp;
+                sf::Vector2f enemyCenter = enemy.hitbox.getCenter();
+                sf::Vector2f assetCenter = assetBounds.getCenter();
+                if (intersecRect.size.x < intersecRect.size.y)
+                {
+                    // going to the right
+                    if (enemyCenter.x < assetCenter.x) {
+                        enemy.pos.x -= intersecRect.size.x;
+                    }
+                    // going to the left
+                    else {
+                        enemy.pos.x += intersecRect.size.x;
+                    }
+                }
+                else
+                {
+                    // going down
+                    if (enemyCenter.y < assetCenter.y) {
+                        enemy.pos.y -= intersecRect.size.y;
+                    }
+                    // going up
+                    else {
+                        enemy.pos.y += intersecRect.size.y;
+                    }
+                }
+                enemy.isJumping = false;
+                enemy.cooldownTimer = 0.f; 
+                enemy.animation_frame = 0;
+                enemy.hitbox.position = {enemy.pos.x - 7.f, enemy.pos.y + 4.f};
+            }
+        }
+        if (name == "Risorse/maps/room1.json"
+            || name == "Risorse/maps/room2.json"
+            || name == "Risorse/maps/room4.json")
+        {
+            for (auto& door_hitbox : door_hitboxes)
+            {
+                if (auto intersecOp = enemy.hitbox.findIntersection(door_hitbox))
+                {
+                    sf::FloatRect intersecRect = *intersecOp;
+                    enemy.pos.y += intersecRect.size.y;
+                    enemy.isJumping = false;
+                    enemy.cooldownTimer = 0.f; 
+                    enemy.animation_frame = 0;
+                    enemy.hitbox.position = {enemy.pos.x - 7.f, enemy.pos.y + 4.f};
+                }
+            }
+        }
+    }
 }
 
 void State::room_transition()
@@ -968,7 +1040,7 @@ void State::collisions(bool isX)
         || roomname == "Risorse/maps/room2.json"
         || roomname == "Risorse/maps/room4.json")
     {
-        for (auto& door_hitbox : door_hitboxes)
+        for (auto& door_hitbox : room.door_hitboxes)
         {
             if (auto intersecOp = player.hitbox.findIntersection(door_hitbox))
             {
@@ -993,7 +1065,7 @@ void State::update(float elapsed)
     if (move_player_down)
         player.move_down(elapsed);
     collisions(false);
-    
+
     if (!playerMoving)
     {
         int row = 0;
@@ -1020,6 +1092,7 @@ void State::update(float elapsed)
         enemy.enemy_logic(player, elapsed);
     }
 
+    room.enemyCollisions();
     room_transition();
 }
 
