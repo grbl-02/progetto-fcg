@@ -199,13 +199,6 @@ void State::update(float elapsed)
 {
     if (playerAttacks)
     {
-        /*
-        move_player_left = false;
-        move_player_right = false;
-        move_player_up = false;
-        move_player_down = false;
-        playerMoving = false;
-        */
         player.attack(elapsed);
         if (!player.isAttacking)
         {

@@ -19,6 +19,8 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     jumpTarget = {0.f, 0.f};
     this->enemyDir = enemyDir;
     hitbox = sf::FloatRect({pos.x - 7.f, pos.y + 4.f}, {13.f, 2.f});
+    hurtbox = sf::FloatRect({pos.x - 7.f, pos.y - 4.f}, {13.f, 11.f});
+    hurtbox_offset = {0.f, 0.f};
 }
 
 BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
@@ -52,6 +54,13 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
         hb.setOutlineThickness(1.f);
         hb.setFillColor(sf::Color::Transparent);
         window.draw(hb);
+
+        sf::RectangleShape hurtb = sf::RectangleShape(hurtbox.size);
+        hurtb.setPosition(hurtbox.position);
+        hurtb.setOutlineColor(sf::Color::Red);
+        hurtb.setOutlineThickness(1.f);
+        hurtb.setFillColor(sf::Color::Transparent);
+        window.draw(hurtb);
     }
 }
 
@@ -75,6 +84,14 @@ void Enemy::animation(int row, float frameTime)
                 sprite.setScale({-1.f, 1.f});
             else
                 sprite.setScale({1.f, 1.f});
+            switch (jump_animation_frame)
+            {
+                case 1:
+                case 2: hurtbox_offset.y -= 2.f; break;
+                case 3:
+                case 4: hurtbox_offset.y += 2.f; break;
+                default: break;
+            }
             jump_animation_frame = (jump_animation_frame + 1) % 6;
         }
     }

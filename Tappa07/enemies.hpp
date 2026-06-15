@@ -15,6 +15,8 @@ struct Enemy
     sf::Clock animation_clock;
     FloatCircle aggro_range;
     sf::FloatRect hitbox;
+    sf::FloatRect hurtbox;
+    sf::Vector2f hurtbox_offset;
 
     bool isJumping;
     float jumptimer;

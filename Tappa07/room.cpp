@@ -328,6 +328,7 @@ void Room::enemyCollisions()
                     enemy->animation_frame = 0;
                 }
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
+                enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
             }
         }
         for (auto& asset : assets)
@@ -364,6 +365,7 @@ void Room::enemyCollisions()
                 enemy->cooldownTimer = 0.f; 
                 enemy->animation_frame = 0;
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
+                enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
             }
         }
         if (name == "Risorse/maps/room1.json"
@@ -380,6 +382,7 @@ void Room::enemyCollisions()
                     enemy->cooldownTimer = 0.f; 
                     enemy->animation_frame = 0;
                     enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
+                    enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
                 }
             }
         }
@@ -439,6 +442,7 @@ void Room::enemyWallCollisions()
                 blueSlime->cooldownTimer = 0.f; 
                 blueSlime->animation_frame = 0;
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
+                enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
             }
         }
     }
