@@ -27,7 +27,8 @@ std::string room1 = "Risorse/maps/room1.json";
 const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";
 
 // nemici
-const char* slime = "Risorse/sprites/characters/slime.png";
+const char* blueSlime = "Risorse/sprites/characters/slime.png";
+const char* redSlime = "Risorse/sprites/characters/redslime.png";
 const float jumpdist = 64.f;
 const float jumptime = 0.5f;
 const float cooldown = 1.0f;
@@ -40,7 +41,7 @@ struct FloatCircle {
     float radius;
 };
 
-bool intersects(FloatCircle& circle, sf::Vector2f& point)
+bool intersects(FloatCircle& circle, const sf::Vector2f& point)
 {
     sf::Vector2f difference = point - circle.center;
     float distanceSquared = (difference.x * difference.x) + (difference.y * difference.y);
@@ -116,10 +117,27 @@ struct Enemy
     dir enemyDir;
 
     Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir);
-    void jump_towards_player(sf::Vector2f playerPos, float elapsed);
-    void enemy_logic(Player player, float elapsed);
+    virtual ~Enemy() = default;
+
+    virtual void enemy_logic(const Player& player, float elapsed) {};
     void animation(int row, float frameTime);
+    virtual void onCollisionResponse() {};
     void draw(sf::RenderWindow& window, bool hitboxes);
+};
+
+struct BlueSlime : Enemy
+{
+    BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir);
+    void jump_towards_player(sf::Vector2f playerPos, float elapsed);
+    void enemy_logic(const Player& player, float elapsed) override;
+};
+
+struct RedSlime : Enemy
+{
+    RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir);
+    
+    void enemy_logic(const Player& player, float elapsed) override;
+    void spitfire();
 };
 
 struct Room
@@ -127,10 +145,11 @@ struct Room
     std::string name;
     sf::Texture roomTexture;
     sf::Texture assetsTexture;
-    sf::Texture slimeTexture;
+    sf::Texture blueSlimeTexture;
+    sf::Texture redSlimeTexture;
     std::vector<Tile> tiles;
     std::vector<Asset> assets;
-    std::vector<Enemy> enemies;
+    std::vector<std::unique_ptr<Enemy>> enemies;
     std::vector<sf::FloatRect> door_hitboxes;
     sf::IntRect left_exit;
     sf::IntRect right_exit;
@@ -228,6 +247,15 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     hitbox = sf::FloatRect({pos.x - 7.f, pos.y + 4.f}, {13.f, 2.f});
 }
 
+BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
+        : Enemy(pos, texture, "blueSlime", enemyDir) {
+}
+
+RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
+        : Enemy(pos, texture, "redSlime", enemyDir) {
+    
+}
+
 Room::Room(std::string& filename)
 {
     door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
@@ -308,7 +336,7 @@ void Room::draw(sf::RenderWindow& window, bool hitboxes)
     for (auto& asset : assets)
         asset.draw(window);
     for (auto& enemy : enemies)
-        enemy.draw(window, hitboxes);
+        enemy->draw(window, hitboxes);
 
     if (hitboxes)
     {
@@ -456,7 +484,7 @@ void Player::enter_down_pos()
     }
 }
 
-void Enemy::jump_towards_player(sf::Vector2f playerPos, float elapsed)
+void BlueSlime::jump_towards_player(sf::Vector2f playerPos, float elapsed)
 {
     if (!isJumping)
     {
@@ -498,7 +526,7 @@ void Enemy::jump_towards_player(sf::Vector2f playerPos, float elapsed)
 
 }
 
-void Enemy::enemy_logic(Player player, float elapsed)
+void BlueSlime::enemy_logic(const Player& player, float elapsed)
 {
     if (!isJumping)
         cooldownTimer += elapsed;
@@ -564,6 +592,40 @@ void Enemy::animation(int row, float frameTime)
             animation_frame = (animation_frame + 1) % 4;
         }
     }
+}
+
+void RedSlime::enemy_logic(const Player& player, float elapsed)
+{
+    if (!isJumping) {
+        cooldownTimer += elapsed;
+        animation(1, idleFrameTime);
+        if (cooldownTimer >= cooldown)
+        {
+            isJumping = true;
+            cooldownTimer = 0.f;
+            jump_animation_frame = 0;
+        }
+    }
+    else
+    {
+        jumptimer += elapsed;
+        if (animation_frame == 3)
+        {
+            spitfire();
+        }
+        if (jumptimer >= jumptime)
+        {
+            isJumping = false;
+            jumptimer = 0.f;
+            animation_frame = 0;
+        }
+        animation(4, slimeMovFrameTime);
+    }
+}
+
+void RedSlime::spitfire()
+{
+
 }
 
 sf::IntRect Room::stringToIntRect(std::string tileID)
@@ -656,7 +718,8 @@ void Room::load(std::string& new_room)
 
     roomTexture = sf::Texture(all_tiles);
     assetsTexture = sf::Texture(all_assets);
-    slimeTexture = sf::Texture(slime);
+    blueSlimeTexture = sf::Texture(blueSlime);
+    redSlimeTexture = sf::Texture(redSlime);
     for (int ty = 0; ty < floor_tile_num.y; ty++)
     {
         for (int tx = 0; tx < floor_tile_num.x; tx++)
@@ -785,7 +848,10 @@ void Room::load(std::string& new_room)
                 else if (enemy_data["dir"] == "down") {
                     enemyDirection = DOWN;
                 }
-                enemies.push_back(Enemy(pos, slimeTexture, name, enemyDirection));
+                if (name == "blueslime")
+                    enemies.push_back(std::make_unique<BlueSlime>(pos, blueSlimeTexture, enemyDirection));
+                else
+                    enemies.push_back(std::make_unique<RedSlime>(pos, redSlimeTexture, enemyDirection));
             }
         }
     }
@@ -802,74 +868,74 @@ void Room::enemyCollisions()
                 || tile.name.find("RIGHTDOOR") != std::string::npos)
             {
                 sf::FloatRect tileBounds = tile.sprite.getGlobalBounds();
-                if (auto intersecOp = enemy.hitbox.findIntersection(tileBounds))
+                if (auto intersecOp = enemy->hitbox.findIntersection(tileBounds))
                 {
                     sf::FloatRect intersecRect = *intersecOp;
-                    sf::Vector2f enemyCenter = enemy.hitbox.getCenter();
+                    sf::Vector2f enemyCenter = enemy->hitbox.getCenter();
                     sf::Vector2f tileCenter = tileBounds.getCenter();
                     if (intersecRect.size.x < intersecRect.size.y)
                     {
                         // going to the right
                         if (enemyCenter.x < tileCenter.x) {
-                            enemy.pos.x -= intersecRect.size.x;
+                            enemy->pos.x -= intersecRect.size.x;
                         }
                         // going to the left
                         else {
-                            enemy.pos.x += intersecRect.size.x;
+                            enemy->pos.x += intersecRect.size.x;
                         }
                     }
                     else
                     {
                         // going down
                         if (enemyCenter.y < tileCenter.y) {
-                            enemy.pos.y -= intersecRect.size.y;
+                            enemy->pos.y -= intersecRect.size.y;
                         }
                         // going up
                         else {
-                            enemy.pos.y += intersecRect.size.y;
+                            enemy->pos.y += intersecRect.size.y;
                         }
                     }
-                    enemy.isJumping = false;
-                    enemy.cooldownTimer = 0.f; 
-                    enemy.animation_frame = 0;
+                    enemy->isJumping = false;
+                    enemy->cooldownTimer = 0.f; 
+                    enemy->animation_frame = 0;
                 }
-                enemy.hitbox.position = {enemy.pos.x - 7.f, enemy.pos.y + 4.f};
+                enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
             }
         }
         for (auto& asset : assets)
         {
             sf::FloatRect assetBounds = asset.sprite.getGlobalBounds();
-            if (auto intersecOp = enemy.hitbox.findIntersection(assetBounds))
+            if (auto intersecOp = enemy->hitbox.findIntersection(assetBounds))
             {
                 sf::FloatRect intersecRect = *intersecOp;
-                sf::Vector2f enemyCenter = enemy.hitbox.getCenter();
+                sf::Vector2f enemyCenter = enemy->hitbox.getCenter();
                 sf::Vector2f assetCenter = assetBounds.getCenter();
                 if (intersecRect.size.x < intersecRect.size.y)
                 {
                     // going to the right
                     if (enemyCenter.x < assetCenter.x) {
-                        enemy.pos.x -= intersecRect.size.x;
+                        enemy->pos.x -= intersecRect.size.x;
                     }
                     // going to the left
                     else {
-                        enemy.pos.x += intersecRect.size.x;
+                        enemy->pos.x += intersecRect.size.x;
                     }
                 }
                 else
                 {
                     // going down
                     if (enemyCenter.y < assetCenter.y) {
-                        enemy.pos.y -= intersecRect.size.y;
+                        enemy->pos.y -= intersecRect.size.y;
                     }
                     // going up
                     else {
-                        enemy.pos.y += intersecRect.size.y;
+                        enemy->pos.y += intersecRect.size.y;
                     }
                 }
-                enemy.isJumping = false;
-                enemy.cooldownTimer = 0.f; 
-                enemy.animation_frame = 0;
-                enemy.hitbox.position = {enemy.pos.x - 7.f, enemy.pos.y + 4.f};
+                enemy->isJumping = false;
+                enemy->cooldownTimer = 0.f; 
+                enemy->animation_frame = 0;
+                enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
             }
         }
         if (name == "Risorse/maps/room1.json"
@@ -878,14 +944,14 @@ void Room::enemyCollisions()
         {
             for (auto& door_hitbox : door_hitboxes)
             {
-                if (auto intersecOp = enemy.hitbox.findIntersection(door_hitbox))
+                if (auto intersecOp = enemy->hitbox.findIntersection(door_hitbox))
                 {
                     sf::FloatRect intersecRect = *intersecOp;
-                    enemy.pos.y += intersecRect.size.y;
-                    enemy.isJumping = false;
-                    enemy.cooldownTimer = 0.f; 
-                    enemy.animation_frame = 0;
-                    enemy.hitbox.position = {enemy.pos.x - 7.f, enemy.pos.y + 4.f};
+                    enemy->pos.y += intersecRect.size.y;
+                    enemy->isJumping = false;
+                    enemy->cooldownTimer = 0.f; 
+                    enemy->animation_frame = 0;
+                    enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
                 }
             }
         }
@@ -1089,7 +1155,7 @@ void State::update(float elapsed)
 
     for (auto& enemy : room.enemies)
     {
-        enemy.enemy_logic(player, elapsed);
+        enemy->enemy_logic(player, elapsed);
     }
 
     room.enemyCollisions();
