@@ -104,9 +104,12 @@ struct Fireball
     sf::Sprite sprite;
     sf::Vector2f pos;
     sf::Vector2f direction;
+    int animation_frame = 0;
+    sf::Clock animation_clock;
 
     Fireball(const sf::Texture& texture, sf::IntRect textureRect, sf::Vector2f pos, sf::Vector2f direction);
     void goTowardsPlayer(float elapsed);
+    void animation(float frameTime);
     void draw(sf::RenderWindow& window);
 };
 
@@ -153,6 +156,7 @@ struct RedSlime : Enemy
 
     RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir);
 
+    void facesPlayer(const Player& player);
     void enemy_logic(const Player& player, float elapsed) override;
     void spitFire(const Player& player);
     void deleteFire();
@@ -253,6 +257,7 @@ Fireball::Fireball(const sf::Texture& texture, sf::IntRect textureRect, sf::Vect
     sprite.setTextureRect(textureRect);
     this->pos = pos;
     this->direction = direction;
+    animation_clock.start();
 }
 
 Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir) : sprite(texture)
@@ -529,6 +534,26 @@ void Player::enter_down_pos()
 void Fireball::goTowardsPlayer(float elapsed)
 {
     pos = pos + (direction * fireball_speed * elapsed);
+    animation(movFrameTime);
+}
+
+void Fireball::animation(float frameTime)
+{
+    if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+    {
+        animation_clock.restart();
+        sf::IntRect curFrame;
+        if (animation_frame == 5)
+        {
+            curFrame = sf::IntRect({11, 2}, {8, 8});
+        }
+        else
+        {
+            curFrame = sf::IntRect({2, 2}, {8, 8});
+        }
+        sprite.setTextureRect(curFrame);
+        animation_frame = (animation_frame + 1) % 6;
+    }
 }
 
 void BlueSlime::jump_towards_player(sf::Vector2f playerPos, float elapsed)
@@ -641,11 +666,26 @@ void Enemy::animation(int row, float frameTime)
     }
 }
 
+void RedSlime::facesPlayer(const Player& player)
+{
+    sf::Vector2f toPlayer = player.pos - pos;
+    float distance = toPlayer.length();
+    sf::Vector2f direction = toPlayer / distance;
+    if (std::abs(direction.x) >= std::abs(direction.y)) {
+        if (direction.x > 0) enemyDir = RIGHT;
+        else enemyDir = LEFT;
+    } else {
+            if (direction.y > 0) enemyDir = DOWN;
+            else enemyDir = UP;
+    }
+}
+
 void RedSlime::enemy_logic(const Player& player, float elapsed)
 {
+    facesPlayer(player);
+
     if (!isJumping) {
         cooldownTimer += elapsed;
-        animation(1, idleFrameTime);
         if (cooldownTimer >= cooldown)
         {
             isJumping = true;
@@ -668,7 +708,28 @@ void RedSlime::enemy_logic(const Player& player, float elapsed)
             jumptimer = 0.f;
             animation_frame = 0;
         }
-        animation(4, slimeMovFrameTime);
+    }
+
+    int row = 0;
+    if (isJumping)
+    {
+        switch (enemyDir) {
+            case LEFT: row = 4; break;
+            case RIGHT: row = 4; break;
+            case UP: row = 5; break;
+            case DOWN: row = 3; break;
+        }
+        animation(row, slimeMovFrameTime);
+    }
+    else
+    {
+        switch (enemyDir) {
+            case LEFT: row = 1; break;
+            case RIGHT: row = 1; break;
+            case UP: row = 2; break;
+            case DOWN: row = 0; break;
+        }
+        animation(row, idleFrameTime);
     }
 }
 
