@@ -4,22 +4,34 @@ Fireball::Fireball(const sf::Texture& texture, sf::IntRect textureRect, sf::Vect
 {
     sprite = sf::Sprite(texture);
     sprite.setTextureRect(textureRect);
-    this->pos = pos;
+    this->pos = {pos.x - 4.f, pos.y - 4.f};
     this->direction = direction;
     animation_clock.start();
     isDestroyed = false;
     destructionFinished = false;
+    hitbox = sf::FloatRect({pos.x - 3.f, pos.y - 3.f}, {6.f, 6.f});
 }
 
-void Fireball::draw(sf::RenderWindow& window)
+void Fireball::draw(sf::RenderWindow& window, bool hitboxes)
 {
     sprite.setPosition(pos);
     window.draw(sprite);
+
+    if (hitboxes)
+    {
+        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+        hb.setPosition(hitbox.position);
+        hb.setOutlineColor(sf::Color::Red);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+    }
 }
 
 void Fireball::goTowardsPlayer(float elapsed)
 {
     pos = pos + (direction * fireball_speed * elapsed);
+    hitbox.position = hitbox.position + (direction * fireball_speed * elapsed);
     animation(movFrameTime);
 }
 

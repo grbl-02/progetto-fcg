@@ -217,6 +217,25 @@ void State::hit()
                 player.isInvincible = true;
                 player.invincibilityClock.restart();
             }
+            if (enemy->name == "redSlime")
+            {
+                RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
+                for (auto& fireball : redSlime->fireballs)
+                {
+                    if (player.hitbox.findIntersection(fireball.hitbox))
+                    {
+                        player.healthPoints--;
+                        player.isHurt = true;
+                        player.redFlashClock.restart();
+                        if (player.healthPoints <= 0)
+                        {
+                            player.dead = true;
+                        }
+                        player.isInvincible = true;
+                        player.invincibilityClock.restart();
+                    }
+                }
+            }
         }
         if (player.slashHit && player.slashHitbox.findIntersection(enemy->hurtbox))
         {

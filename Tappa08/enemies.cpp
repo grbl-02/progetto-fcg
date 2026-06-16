@@ -88,7 +88,7 @@ void RedSlime::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)
 {
     Enemy::draw(window, hitboxes, flash);
     for (auto& fireball : fireballs)
-        fireball.draw(window);
+        fireball.draw(window, hitboxes);
 }
 
 void Enemy::animation(int row, float frameTime)
