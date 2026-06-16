@@ -1,7 +1,7 @@
 #include "enemies.hpp"
 #include "player.hpp"
 
-Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir) : sprite(texture)
+Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir, int id) : sprite(texture)
 {
     sprite = sf::Sprite(texture);
     sprite.setTextureRect(sf::IntRect({0, 32}, {32, 32}));
@@ -10,6 +10,7 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     sprite.setOrigin({sx / 2.f, sy / 2.f});
     this->pos = pos;
     this->name = name;
+    this->id = id;
     animation_clock.start();
     aggro_range = {pos, 100.f};
     isJumping = false;
@@ -23,15 +24,17 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     hurtbox_offset = {0.f, 0.f};
     hurt = false;
     flashClock.reset();
+    isDead = false;
+    deathFinished = false;
 }
 
-BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
-        : Enemy(pos, texture, "blueSlime", enemyDir) {
+BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id)
+        : Enemy(pos, texture, "blueSlime", enemyDir, id) {
     healthPoints = 3;
 }
 
-RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
-        : Enemy(pos, texture, "redSlime", enemyDir) {
+RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id)
+        : Enemy(pos, texture, "redSlime", enemyDir, id) {
     fireballTexture = sf::Texture(fireballSprites);
     hasShot = false;
     healthPoints = 5;
@@ -47,7 +50,6 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)
     }
     else
     {
-        printf("hurt\n");
         window.draw(sprite, &flash);
         if (flashClock.getElapsedTime().asSeconds() >= flash_duration)
         {
@@ -91,7 +93,21 @@ void RedSlime::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)
 
 void Enemy::animation(int row, float frameTime)
 {
-    if (isJumping)
+    if (isDead)
+    {
+        if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
+        {
+            animation_clock.restart();
+            sf::IntRect curFrame = sf::IntRect({death_animation_frame * 32, row * 32}, {32, 32});
+            sprite.setTextureRect(curFrame);
+            if (death_animation_frame == 4)
+            {
+                deathFinished = true;
+            }
+            death_animation_frame = (death_animation_frame + 1) % 5;
+        }
+    }
+    else if (isJumping)
     {
         if (animation_clock.getElapsedTime().asSeconds() >= frameTime)
         {

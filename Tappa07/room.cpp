@@ -258,6 +258,7 @@ void Room::load(std::string& new_room)
         sf::Vector2f pos;
         std::string name;
         dir enemyDirection;
+        int id = 0;
         for (auto& [enemy_type, enemy_list] : mapData["enemies"].items())
         {
             name = enemy_type;
@@ -277,9 +278,10 @@ void Room::load(std::string& new_room)
                     enemyDirection = DOWN;
                 }
                 if (name == "blueslime")
-                    enemies.push_back(std::make_unique<BlueSlime>(pos, blueSlimeTexture, enemyDirection));
+                    enemies.push_back(std::make_unique<BlueSlime>(pos, blueSlimeTexture, enemyDirection, id));
                 else
-                    enemies.push_back(std::make_unique<RedSlime>(pos, redSlimeTexture, enemyDirection));
+                    enemies.push_back(std::make_unique<RedSlime>(pos, redSlimeTexture, enemyDirection, id));
+                id++;
             }
         }
     }
@@ -445,5 +447,19 @@ void Room::enemyWallCollisions()
                 enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
             }
         }
+    }
+}
+
+void Room::enemyDeathCleanUp()
+{
+    for (int i = 0; i < enemies.size(); )
+    {
+        if (enemies[i]->isDead && enemies[i]->deathFinished)
+        {  
+            std::swap(enemies[i], enemies.back());
+            enemies.pop_back();
+        }
+        else
+            i++;
     }
 }

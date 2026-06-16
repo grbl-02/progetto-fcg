@@ -198,18 +198,33 @@ void State::collisions(bool isX)
 
 void State::hit()
 {
+    if (!player.slashHit) return;
+
     for (auto& enemy : room.enemies)
     {
+        if (enemy->isDead) continue;
+
         if (player.slashHitbox.findIntersection(enemy->hurtbox))
         {
             enemy->healthPoints--;
+            player.slashHit = false;
+            if (enemy->healthPoints <= 0)
+            {
+                enemy->isDead = true;
+                if (enemy->name == "redSlime")
+                {
+                    RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
+                    for (auto& fireball : redSlime->fireballs)
+                    {
+                        fireball.isDestroyed = true;
+                    }
+                }
+            }
             enemy->hurt = true;
             enemy->flashClock.restart();
-            if (enemy->healthPoints == 0)
-            {
 
-            }
-        }
+            break;
+        }    
     }
 }
 
@@ -260,6 +275,19 @@ void State::update(float elapsed)
     }
     for (auto& enemy : room.enemies)
     {
+        if (enemy->isDead)
+        {
+            enemy->animation(12, idleFrameTime);
+            if (enemy->name == "redSlime")
+            {
+                RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
+                for (auto& fireball : redSlime->fireballs)
+                {
+                    fireball.animation(idleFrameTime);
+                }
+            }
+            continue;
+        }
         enemy->enemy_logic(player, elapsed);
         if (enemy->name == "redSlime")
         {
@@ -273,6 +301,7 @@ void State::update(float elapsed)
     }
 
     hit();
+    room.enemyDeathCleanUp();
     room.enemyCollisions();
     room.enemyWallCollisions();
     room_transition();

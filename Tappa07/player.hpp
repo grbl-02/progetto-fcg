@@ -16,6 +16,7 @@ struct Player
     int attack_animation_frame = 0;
     int aaf_no_mod = 0;
     sf::FloatRect slashHitbox;
+    bool slashHit;
 
     Player();
     void draw(sf::RenderWindow& window, bool hitboxes);

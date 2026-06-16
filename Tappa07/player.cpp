@@ -18,6 +18,7 @@ Player::Player() : sprite(texture)
     direction = UP;
     isAttacking = false;
     slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
+    slashHit = false;
 }
 
 void Player::draw(sf::RenderWindow& window, bool hitboxes)
@@ -138,6 +139,7 @@ void Player::attack(float elapsed)
 
 void Player::slash()
 {
+    slashHit = true;
     switch (direction) {
         case LEFT: slashHitbox = sf::FloatRect({pos.x - 18.f, pos.y + 8.f}, {11.f, 13.f}); break;
         case RIGHT: slashHitbox = sf::FloatRect({pos.x + 7.f, pos.y + 8.f}, {11.f, 13.f}); break;
