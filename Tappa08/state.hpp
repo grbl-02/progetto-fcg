@@ -5,6 +5,7 @@
 
 struct State
 {
+    GameMode gameMode;
     std::string roomname;
     Player player;
     Room room;
@@ -19,11 +20,14 @@ struct State
     dir lastPressed;
     sf::Shader* flash;
     sf::Shader* redflash;
+    sf::Text gameOverText;
+    sf::Text restartText;
 
-    State(sf::Shader& flash, sf::Shader& redflash);
+    State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
     void room_transition();
     void collisions(bool isX);
     void hit();
     void update(float elapsed);
+    void reset();
 };

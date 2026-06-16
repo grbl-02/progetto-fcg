@@ -229,3 +229,34 @@ void Player::invincibilityTime()
         invincibilityClock.reset();
     }
 }
+
+void Player::reset()
+{
+    texture = sf::Texture(player_texture);
+    sprite = sf::Sprite(texture);
+    sprite.setTextureRect(sf::IntRect({0, 96}, {48, 48}));
+    float sx = (float)sprite.getTextureRect().size.x;
+    float sy = (float)sprite.getTextureRect().size.y;
+    sprite.setOrigin({sx / 2.f, sy / 2.f});
+    float px = (float)window_width / (3.f * 2.f);
+    float py = (float)window_height / 3.f - sy / 2.f + 6.f;
+    pos = {px, py};
+    isLeft = false;
+    animation_clock.start();
+    hitbox = sf::FloatRect({pos.x - 5.f, pos.y + 15.f}, {10.f, 3.f});
+    direction = UP;
+    isAttacking = false;
+    slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
+    slashHit = false;
+    healthPoints = 3;
+    isInvincible = false;
+    isHurt = false;
+    redFlashClock.reset();
+    invincibilityClock.reset();
+    dead = false;
+    deathAnimationEnded = false;
+    animation_frame = 0;
+    attack_animation_frame = 0;
+    aaf_no_mod = 0;
+    death_animation_frame = 0;
+}

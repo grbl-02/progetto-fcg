@@ -1,7 +1,9 @@
 #include "state.hpp"
 
-State::State(sf::Shader& flash, sf::Shader& redflash) : room(room1)
+State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
+    : room(room1), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8)
 {
+    gameMode = PLAYING;
     roomname = room1;
     move_player_up = false;
     move_player_down = false;
@@ -13,6 +15,12 @@ State::State(sf::Shader& flash, sf::Shader& redflash) : room(room1)
     hitboxes = false;
     this->flash = &flash;
     this->redflash = &redflash;
+
+    gameOverText.setFillColor(sf::Color::White);
+    gameOverText.setPosition({((float)window_width / 3.f - gameOverText.getGlobalBounds().size.x) / 2.f, 50.f});
+
+    restartText.setFillColor(sf::Color::White);
+    restartText.setPosition({((float)window_width / 3.f - restartText.getGlobalBounds().size.x) / 2.f, 200.f});
 }
 
 void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash)
@@ -34,6 +42,11 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
             hitbox.setFillColor(sf::Color::Transparent);
             window.draw(hitbox);
         }
+    }
+    if (gameMode == GAME_OVER)
+    {
+        window.draw(gameOverText);
+        window.draw(restartText);
     }
 }
 
@@ -266,6 +279,10 @@ void State::update(float elapsed)
     if (player.dead)
     {
         player.animation(9, idleFrameTime);
+        if (player.deathAnimationEnded)
+        {
+            gameMode = GAME_OVER;
+        }
     }
     else
     {
@@ -349,4 +366,24 @@ void State::update(float elapsed)
     room.enemyCollisions();
     room.enemyWallCollisions();
     room_transition();
+}
+
+void State::reset()
+{
+    gameMode = PLAYING;
+    roomname = room1;
+
+    room.unload();
+    room.load(roomname);
+
+    move_player_up = false;
+    move_player_down = false;
+    move_player_left = false;
+    move_player_right = false;
+    playerAttacks = false;
+    playerMoving = false;
+    hitboxes = false;
+    lastPressed = UP;
+
+    player.reset();
 }

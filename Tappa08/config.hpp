@@ -40,6 +40,7 @@ inline const float slimeMovFrameTime = jumptime / 6.f;
 inline const float flash_duration = 0.1f;
 
 enum dir { UP, DOWN, LEFT, RIGHT };
+enum GameMode { PLAYING, GAME_OVER, VICTORY };
 
 struct FloatCircle {
     sf::Vector2f center;

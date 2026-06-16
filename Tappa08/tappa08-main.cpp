@@ -83,6 +83,12 @@ void handle(const sf::Event::KeyReleased& key, State& state)
             state.lastPressed = RIGHT;
             state.playerMoving = false;
             return;
+        case sf::Keyboard::Scancode::Enter:
+            if (state.gameMode == GAME_OVER)
+            {
+                state.reset();
+            }
+            return;
         default:
             return;
     }
@@ -122,7 +128,16 @@ int main()
         return 1;
     }
 
-    State state = State(shader, redShader);
+    sf::Font font;
+    if (!font.openFromFile("Risorse/fonts/PublicPixel.ttf"))
+    {
+        fprintf(stderr, "Error: could not open font.\n");
+        return -1; 
+    }
+    const_cast<sf::Texture&>(font.getTexture(32)).setSmooth(false);
+    const_cast<sf::Texture&>(font.getTexture(8)).setSmooth(false);
+
+    State state = State(shader, redShader, font);
     sf::Clock clock;
 
     while (window.isOpen())
