@@ -1,6 +1,6 @@
 #include "state.hpp"
 
-State::State() : room(room1)
+State::State(sf::Shader& flash) : room(room1)
 {
     roomname = room1;
     move_player_up = false;
@@ -11,11 +11,12 @@ State::State() : room(room1)
     playerAttacks = false;
     playerMoving = false;
     hitboxes = false;
+    this->flash = &flash;
 }
 
-void State::draw(sf::RenderWindow& window)
+void State::draw(sf::RenderWindow& window, sf::Shader& flash)
 {
-    room.draw(window, hitboxes);
+    room.draw(window, hitboxes, flash);
     player.draw(window, hitboxes);
 
     if (hitboxes && 
@@ -201,7 +202,13 @@ void State::hit()
     {
         if (player.slashHitbox.findIntersection(enemy->hurtbox))
         {
-            
+            enemy->healthPoints--;
+            enemy->hurt = true;
+            enemy->flashClock.restart();
+            if (enemy->healthPoints == 0)
+            {
+
+            }
         }
     }
 }
@@ -265,6 +272,7 @@ void State::update(float elapsed)
         }
     }
 
+    hit();
     room.enemyCollisions();
     room.enemyWallCollisions();
     room_transition();

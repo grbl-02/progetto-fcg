@@ -30,5 +30,5 @@ struct Room
     void load(std::string& new_room);
     void enemyCollisions();
     void enemyWallCollisions();
-    void draw(sf::RenderWindow& window, bool hitboxes);
+    void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash);
 };

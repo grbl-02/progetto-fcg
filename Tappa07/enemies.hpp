@@ -17,6 +17,8 @@ struct Enemy
     sf::FloatRect hitbox;
     sf::FloatRect hurtbox;
     sf::Vector2f hurtbox_offset;
+    int healthPoints;
+    bool hurt;
 
     bool isJumping;
     float jumptimer;
@@ -24,6 +26,7 @@ struct Enemy
     sf::Vector2f jumpStart;
     sf::Vector2f jumpTarget;
     dir enemyDir;
+    sf::Clock flashClock;
 
     Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir);
     virtual ~Enemy() = default;
@@ -31,7 +34,7 @@ struct Enemy
     virtual void enemy_logic(const Player& player, float elapsed) {};
     void animation(int row, float frameTime);
     virtual void onCollisionResponse() {};
-    virtual void draw(sf::RenderWindow& window, bool hitboxes);
+    virtual void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash);
 };
 
 struct BlueSlime : Enemy
@@ -53,5 +56,5 @@ struct RedSlime : Enemy
     void enemy_logic(const Player& player, float elapsed) override;
     void spitFire(const Player& player);
     void deleteFire();
-    void draw(sf::RenderWindow& window, bool hitboxes) override;
+    void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) override;
 };

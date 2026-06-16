@@ -34,8 +34,9 @@ inline const char* redSlime = "Risorse/sprites/characters/redslime.png";
 inline const char* fireballSprites = "Risorse/sprites/characters/fireballs.png";
 inline const float jumpdist = 64.f;
 inline const float jumptime = 0.5f;
-inline const float cooldown = 1.0f;
+inline const float cooldown = 1.f;
 inline const float slimeMovFrameTime = jumptime / 6.f;
+inline const float flash_duration = 0.1f;
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 

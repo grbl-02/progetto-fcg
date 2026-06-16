@@ -21,22 +21,40 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     hitbox = sf::FloatRect({pos.x - 7.f, pos.y + 4.f}, {13.f, 2.f});
     hurtbox = sf::FloatRect({pos.x - 7.f, pos.y - 4.f}, {13.f, 11.f});
     hurtbox_offset = {0.f, 0.f};
+    hurt = false;
+    flashClock.reset();
 }
 
 BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
         : Enemy(pos, texture, "blueSlime", enemyDir) {
+    healthPoints = 3;
 }
 
 RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir)
         : Enemy(pos, texture, "redSlime", enemyDir) {
     fireballTexture = sf::Texture(fireballSprites);
     hasShot = false;
+    healthPoints = 5;
 }
 
-void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
+void Enemy::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)
 {
     sprite.setPosition(pos);
-    window.draw(sprite);
+    if (!hurt)
+    {
+        sprite.setColor(sf::Color::White);
+        window.draw(sprite);
+    }
+    else
+    {
+        printf("hurt\n");
+        window.draw(sprite, &flash);
+        if (flashClock.getElapsedTime().asSeconds() >= flash_duration)
+        {
+            hurt = false;
+            flashClock.reset();
+        }
+    }
 
     if (hitboxes)
     {
@@ -64,9 +82,9 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes)
     }
 }
 
-void RedSlime::draw(sf::RenderWindow& window, bool hitboxes)
+void RedSlime::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)
 {
-    Enemy::draw(window, hitboxes);
+    Enemy::draw(window, hitboxes, flash);
     for (auto& fireball : fireballs)
         fireball.draw(window);
 }

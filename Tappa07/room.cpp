@@ -7,14 +7,14 @@ Room::Room(std::string& filename)
     load(filename);
 }
 
-void Room::draw(sf::RenderWindow& window, bool hitboxes)
+void Room::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)
 {
     for (auto& tile : tiles)
         tile.draw(window);
     for (auto& asset : assets)
         asset.draw(window);
     for (auto& enemy : enemies)
-        enemy->draw(window, hitboxes);
+        enemy->draw(window, hitboxes, flash);
 
     if (hitboxes)
     {

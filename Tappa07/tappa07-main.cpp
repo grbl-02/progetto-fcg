@@ -108,7 +108,14 @@ int main()
     sf::View camera = sf::View(sf::FloatRect({0.0, 0.0}, {384.f, 288.f}));
     window.setView(camera);
 
-    State state;
+    sf::Shader shader;
+    if (!shader.loadFromFile("Tappa07/flash.frag", sf::Shader::Type::Fragment))
+    {
+        fprintf(stderr, "Error: could not load shader.\n");
+        return 1;
+    }
+
+    State state = State(shader);
     sf::Clock clock;
 
     while (window.isOpen())
@@ -125,7 +132,7 @@ int main()
 
         // display
         window.clear(sf::Color::Black);
-        state.draw(window);
+        state.draw(window, shader);
         window.display();
     }
 }

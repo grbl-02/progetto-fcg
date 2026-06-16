@@ -17,9 +17,10 @@ struct State
     bool playerMoving;
     bool hitboxes;
     dir lastPressed;
+    sf::Shader* flash;
 
-    State();
-    void draw(sf::RenderWindow& window);
+    State(sf::Shader& flash);
+    void draw(sf::RenderWindow& window, sf::Shader& flash);
     void room_transition();
     void collisions(bool isX);
     void hit();
