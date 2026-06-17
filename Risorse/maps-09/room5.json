@@ -25,10 +25,18 @@
             "size" : [32, 28]
         },
         "spikes" : {
-            "condition" : "room_6_gauntlet_triggered_not_cleared",
-            "spritepos" : [0, 0],
-            "pos" : [176, 256],
-            "size" : [32, 32]
+            "spikes1" : {
+                "condition" : "room_5_gauntlet_triggered_not_cleared",
+                "spritepos" : [0, 0],
+                "pos" : [160, 256],
+                "size" : [32, 32]
+            },
+            "spikes2" : {
+                "condition" : "room_5_gauntlet_triggered_not_cleared",
+                "spritepos" : [0, 0],
+                "pos" : [192, 256],
+                "size" : [32, 32]
+            }
         }
     },
     "enemies" : {

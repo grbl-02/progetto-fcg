@@ -190,7 +190,7 @@ void Player::attack(float elapsed)
         case DOWN: row = 6; break;
         default: break;
     }
-    animation(row, movFrameTime);
+    animation(row, slashFrameTime);
 }
 
 void Player::slash()

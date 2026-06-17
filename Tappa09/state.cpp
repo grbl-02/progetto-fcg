@@ -368,6 +368,13 @@ void State::update(float elapsed)
     room.enemyCollisions();
     room.enemyWallCollisions();
     room_transition();
+
+    trigger_gauntlet3();
+    clear_gauntlet3();
+    trigger_gauntlet5();
+    clear_gauntlet5();
+    trigger_gauntlet6();
+    clear_gauntlet6();
 }
 
 void State::reset()
@@ -375,16 +382,9 @@ void State::reset()
     gameMode = PLAYING;
     roomname = room1;
 
-    bool chest_3_opened = false;
-    bool chest_5_opened = false;
-    bool chest_6_opened = false;
-
-    bool room_3_gauntlet_triggered = false;
-    bool room_3_gauntlet_cleared = false;
-    bool room_5_gauntlet_triggered = false;
-    bool room_5_gauntlet_cleared = false;
-    bool room_6_gauntlet_triggered = false;
-    bool room_6_gauntlet_cleared = false;
+    flags = {false, false, false,
+             false, false, false,
+             false, false, false};
 
     room.unload();
     room.load(roomname);
@@ -399,4 +399,78 @@ void State::reset()
     lastPressed = UP;
 
     player.reset();
+}
+
+void State::trigger_gauntlet3()
+{
+    if (room.name == "Risorse/maps-09/room3.json" && !flags.room_3_gauntlet_triggered)
+    {
+        if (player.hitbox.position.y + player.hitbox.size.y < 256.f)
+        {
+            flags.room_3_gauntlet_triggered = true;
+            room.load(room.name);
+        }
+    }
+}
+
+void State::trigger_gauntlet5()
+{
+    if (room.name == "Risorse/maps-09/room5.json" && !flags.room_5_gauntlet_triggered)
+    {
+        if (player.hitbox.position.y + player.hitbox.size.y < 256.f)
+        {
+            flags.room_5_gauntlet_triggered = true;
+            room.unload();
+            room.load(room.name);
+        }
+    }
+}
+
+void State::trigger_gauntlet6()
+{
+    if (room.name == "Risorse/maps-09/room6.json" && !flags.room_6_gauntlet_triggered)
+    {
+        if (player.hitbox.position.y + player.hitbox.size.y < 256.f)
+        {
+            flags.room_6_gauntlet_triggered = true;
+            room.unload();
+            room.load(room.name);
+        }
+    }
+}
+
+void State::clear_gauntlet3()
+{
+    if (room.name == "Risorse/maps-09/room3.json" && flags.room_3_gauntlet_triggered && !flags.room_3_gauntlet_cleared)
+    {
+        if (room.enemies.empty()){
+            flags.room_3_gauntlet_cleared = true;
+            room.unload();
+            room.load(room.name);
+        }
+    }
+}
+
+void State::clear_gauntlet5()
+{
+    if (room.name == "Risorse/maps-09/room5.json" && flags.room_5_gauntlet_triggered && !flags.room_5_gauntlet_cleared)
+    {
+        if (room.enemies.empty()){
+            flags.room_5_gauntlet_cleared = true;
+            room.unload();
+            room.load(room.name);
+        }
+    }
+}
+
+void State::clear_gauntlet6()
+{
+    if (room.name == "Risorse/maps-09/room6.json" && flags.room_6_gauntlet_triggered && !flags.room_6_gauntlet_cleared)
+    {
+        if (room.enemies.empty()){
+            flags.room_6_gauntlet_cleared = true;
+            room.unload();
+            room.load(room.name);
+        }
+    }
 }

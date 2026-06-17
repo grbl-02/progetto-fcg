@@ -19,6 +19,7 @@ inline const float invincibilityFlashInterval = 0.025f;
 // animazione
 inline const float movFrameTime = 0.1;
 inline const float idleFrameTime = 0.2;
+inline const float slashFrameTime = 0.075;
 
 // stanza
 inline const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.png";
@@ -29,6 +30,7 @@ inline const float fireball_speed = 100.0;
 
 // oggetti
 inline const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";
+inline const char* spikes = "Risorse/basic_caves_and_dungeons/assets/spikes.png";
 
 // nemici
 inline const char* blueSlime = "Risorse/sprites/characters/slime.png";

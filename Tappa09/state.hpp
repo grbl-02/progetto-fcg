@@ -32,4 +32,11 @@ struct State
     void hit();
     void update(float elapsed);
     void reset();
+
+    void trigger_gauntlet3();
+    void trigger_gauntlet5();
+    void trigger_gauntlet6();
+    void clear_gauntlet3();
+    void clear_gauntlet5();
+    void clear_gauntlet6();
 };

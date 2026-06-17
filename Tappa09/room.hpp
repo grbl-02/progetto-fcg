@@ -12,6 +12,7 @@ struct Room
     sf::Texture assetsTexture;
     sf::Texture blueSlimeTexture;
     sf::Texture redSlimeTexture;
+    sf::Texture spikesTexture;
     std::vector<Tile> tiles;
     std::vector<Asset> assets;
     std::vector<std::unique_ptr<Enemy>> enemies;
@@ -26,10 +27,10 @@ struct Room
     std::string room_up;
     std::string room_down;
 
-    Flags flags;
+    Flags* flags;
     ConditionEvaluator conditionEvaluator;
 
-    Room(std::string& filename, Flags flags);
+    Room(std::string& filename, Flags& flags);
     sf::IntRect stringToIntRect(std::string tileID);
     void unload();
     void load(std::string& new_room);

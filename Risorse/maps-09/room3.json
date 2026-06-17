@@ -19,16 +19,24 @@
     },
     "assets" : {
         "chest" : {
-            "condition" : "room3_gauntlet_cleared",
+            "condition" : "room_3_gauntlet_cleared",
             "spritepos" : [164, 32],
             "pos" : [176.5, 80],
             "size" : [32, 28]
         },
         "spikes" : {
-            "condition" : "room_6_gauntlet_triggered_not_cleared",
-            "spritepos" : [0, 0],
-            "pos" : [176, 256],
-            "size" : [32, 32]
+            "spikes1" : {
+                "condition" : "room_3_gauntlet_triggered_not_cleared",
+                "spritepos" : [0, 0],
+                "pos" : [160, 256],
+                "size" : [32, 32]
+            },
+            "spikes2" : {
+                "condition" : "room_3_gauntlet_triggered_not_cleared",
+                "spritepos" : [0, 0],
+                "pos" : [192, 256],
+                "size" : [32, 32]
+            }
         }
     },
     "enemies" : {

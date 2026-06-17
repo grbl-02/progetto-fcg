@@ -1,10 +1,16 @@
 #include "room.hpp"
 
-Room::Room(std::string& filename, Flags flags) : conditionEvaluator(flags)
+Room::Room(std::string& filename, Flags& flags) : conditionEvaluator(flags)
 {
+    roomTexture = sf::Texture(all_tiles);
+    assetsTexture = sf::Texture(all_assets);
+    blueSlimeTexture = sf::Texture(blueSlime);
+    redSlimeTexture = sf::Texture(redSlime);
+    spikesTexture = sf::Texture(spikes);
+    this->flags = &flags;
+    conditionEvaluator = ConditionEvaluator(flags);
     door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
     door_hitboxes.push_back(sf::FloatRect({7 * 32.f, 3 * 32.f}, {-13.f, -1 * 32.f}));
-    this->flags = flags;
     load(filename);
 }
 
@@ -144,11 +150,7 @@ void Room::load(std::string& new_room)
 
     nlohmann::json mapData;
     file >> mapData;
-
-    roomTexture = sf::Texture(all_tiles);
-    assetsTexture = sf::Texture(all_assets);
-    blueSlimeTexture = sf::Texture(blueSlime);
-    redSlimeTexture = sf::Texture(redSlime);
+    
     for (int ty = 0; ty < floor_tile_num.y; ty++)
     {
         for (int tx = 0; tx < floor_tile_num.x; tx++)
@@ -281,6 +283,35 @@ void Room::load(std::string& new_room)
                     }
                     sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
                     assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), name, fsize));
+                }
+            }
+            else
+            {
+                for (auto& [asset_id, asset_d] : asset_data.items())
+                {
+                    if (asset_d.contains("condition"))
+                    {
+                        if (conditionEvaluator.evaluate(asset_d["condition"]))
+                        {
+                            sf::Vector2f pos;
+                            sf::Vector2i size;
+                            sf::Vector2i texturePos;
+                            if (asset_d.contains("pos")) {
+                                pos.x = asset_d["pos"][0].get<float>();
+                                pos.y = asset_d["pos"][1].get<float>();
+                            }
+                            if (asset_d.contains("size")) {
+                                size.x = asset_d["size"][0].get<int>();
+                                size.y = asset_d["size"][1].get<int>();
+                            }
+                            if (asset_d.contains("spritepos")) {
+                                texturePos.x = asset_d["spritepos"][0].get<int>();
+                                texturePos.y = asset_d["spritepos"][1].get<int>();
+                            }
+                            sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
+                            assets.push_back(Asset(pos, spikesTexture, sf::IntRect(texturePos, size), name, fsize));
+                        }
+                    }
                 }
             }
         }
