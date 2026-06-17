@@ -19,9 +19,37 @@
     },
     "assets" : {
         "chest" : {
+            "condition" : "room5_gauntlet_cleared",
             "spritepos" : [164, 32],
             "pos" : [176.5, 80],
             "size" : [32, 28]
+        },
+        "spikes" : {
+            "condition" : "room5_gauntlet_triggered && !room5_gauntlet_cleared"
+        }
+    },
+    "enemies" : {
+        "redslime" : {
+            "redslime1" : {
+                "condition" : "room5_gauntlet_triggered && !room5_gauntlet_cleared",
+                "pos" : [48, 240],
+                "dir" : "right"
+            },
+            "redslime2" : {
+                "condition" : "room5_gauntlet_triggered && !room5_gauntlet_cleared",
+                "pos" : [320, 240],
+                "dir" : "left"
+            },
+            "redslime3" : {
+                "condition" : "room5_gauntlet_triggered && !room5_gauntlet_cleared",
+                "pos" : [48, 112],
+                "dir" : "right"
+            },
+            "redslime4" : {
+                "condition" : "room5_gauntlet_triggered && !room5_gauntlet_cleared",
+                "pos" : [320, 112],
+                "dir" : "left"
+            }
         }
     }
 }

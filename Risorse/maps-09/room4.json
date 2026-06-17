@@ -21,5 +21,14 @@
             "size" : [2, 1],
             "room" : "Risorse/maps/room5.json"
         }
+    },
+    "enemies": {
+        "redslime" : {
+            "redslime1" : {
+                "condition" : true,
+                "pos" : [320, 240],
+                "dir" : "left"
+            }
+        }
     }
 }

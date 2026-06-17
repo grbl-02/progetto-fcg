@@ -16,5 +16,42 @@
             "size" : [2, 1],
             "room" : "Risorse/maps/room1.json"
         }
+    },
+    "assets" : {
+        "chest" : {
+            "condition" : "room6_gauntlet_cleared",
+            "spritepos" : [164, 32],
+            "pos" : [176.5, 80],
+            "size" : [32, 28]
+        },
+        "spikes" : {
+            "condition" : "room6_gauntlet_triggered && !room6_gauntlet_cleared"
+        }
+    },
+    "enemies" : {
+        "blueslime" : {
+            "blueslime1" : {
+                "condition" : "room6_gauntlet_triggered && !room6_gauntlet_cleared",
+                "pos" : [48, 240],
+                "dir" : "right"
+            },
+            "blueslime2" : {
+                "condition" : "room6_gauntlet_triggered && !room6_gauntlet_cleared",
+                "pos" : [320, 112],
+                "dir" : "left"
+            }
+        },
+        "redslime": {
+            "redslime1" : {
+                "condition" : "room6_gauntlet_triggered && !room6_gauntlet_cleared",
+                "pos" : [320, 240],
+                "dir" : "left"
+            },
+            "redslime2" : {
+                "condition" : "room6_gauntlet_triggered && !room6_gauntlet_cleared",
+                "pos" : [48, 112],
+                "dir" : "right"
+            }
+        }
     }
 }

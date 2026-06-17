@@ -28,6 +28,12 @@
                 "pos" : [48, 240],
                 "dir" : "right"
             }
+        },
+        "redslime" : {
+            "redslime1" : {
+                "pos" : [48, 112],
+                "dir" : "right"
+            }
         }
     }
 }

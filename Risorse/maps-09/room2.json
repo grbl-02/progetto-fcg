@@ -25,6 +25,7 @@
     "enemies" : {
         "blueslime" : {
             "blueslime1" : {
+                "condition" : true,
                 "pos" : [48, 240],
                 "dir" : "right"
             }
