@@ -229,6 +229,7 @@ void State::hit()
                 }
                 player.isInvincible = true;
                 player.invincibilityClock.restart();
+                player.invincibilityFlashClock.restart();
             }
             if (enemy->name == "redSlime")
             {
@@ -246,6 +247,7 @@ void State::hit()
                         }
                         player.isInvincible = true;
                         player.invincibilityClock.restart();
+                        player.invincibilityFlashClock.restart();
                     }
                 }
             }

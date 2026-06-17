@@ -14,6 +14,7 @@ inline const float max_frame_rate = 60;
 inline const char* player_texture = "Risorse/sprites/characters/player.png";
 inline const float player_speed = 120.0;
 inline const float invincibility = 1.f;
+inline const float invincibilityFlashInterval = 0.025f;
 
 // animazione
 inline const float movFrameTime = 0.1;

@@ -25,6 +25,10 @@ struct Player
     bool dead;
     int death_animation_frame = 0;
     bool deathAnimationEnded;
+    sf::Clock invincibilityFlashClock;
+    bool spriteVisible;
+    bool isFlashing;
+    bool isDying;
 
     Player();
     void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& redflash);

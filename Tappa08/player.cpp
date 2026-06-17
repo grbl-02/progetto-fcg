@@ -26,25 +26,48 @@ Player::Player() : sprite(texture)
     invincibilityClock.reset();
     dead = false;
     deathAnimationEnded = false;
+    invincibilityFlashClock.reset();
+    spriteVisible = false;
+    isFlashing = false;
+    isDying = false;
 }
 
 void Player::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& redflash)
 {
     sprite.setPosition(pos);
-    if (!isHurt || deathAnimationEnded)
+    if ((!isHurt && !isFlashing) || deathAnimationEnded || isDying)
     {
         sprite.setColor(sf::Color::White);
         window.draw(sprite);
     }
-    else
+    else if (isHurt)
     {
         window.draw(sprite, &redflash);
         if (redFlashClock.getElapsedTime().asSeconds() >= flash_duration)
         {
             isHurt = false;
+            isFlashing = true;
             redFlashClock.reset();
+            if (dead)
+            {
+                isDying = true;
+            }
         }
     }
+    else if (isFlashing && !dead)
+    {
+        if (invincibilityFlashClock.getElapsedTime().asSeconds() >= invincibilityFlashInterval)
+        {
+            spriteVisible = !spriteVisible;
+            invincibilityFlashClock.restart();
+        }
+        if (spriteVisible) {
+            sprite.setColor(sf::Color::White);
+        }
+        else sprite.setColor(sf::Color(255, 255, 255, 50));
+        window.draw(sprite);
+    }
+
     if (hitboxes)
     {
         sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
@@ -227,6 +250,8 @@ void Player::invincibilityTime()
     {
         isInvincible = false;
         invincibilityClock.reset();
+        invincibilityFlashClock.reset();
+        isFlashing = false;
     }
 }
 
@@ -255,6 +280,10 @@ void Player::reset()
     invincibilityClock.reset();
     dead = false;
     deathAnimationEnded = false;
+    invincibilityFlashClock.reset();
+    spriteVisible = false;
+    isFlashing = false;
+    isDying = false;
     animation_frame = 0;
     attack_animation_frame = 0;
     aaf_no_mod = 0;
