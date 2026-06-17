@@ -25,7 +25,6 @@
     "enemies": {
         "redslime" : {
             "redslime1" : {
-                "condition" : true,
                 "pos" : [320, 240],
                 "dir" : "left"
             }

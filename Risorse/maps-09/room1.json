@@ -30,8 +30,8 @@
     "assets" : {
         "rock_blocking_room6" : {
             "states" : [
-                {"condition" : "!chest_3_opened && !chest_5_opened", "spritepos" : [34, 129], "pos" : [163.5, 10], "size" : [58, 105]},
-                {"condition" : "chest_3_opened && !chest_5_opened", "spritepos" : [39, 250], "pos" : [168, 66], "size" : [49, 49]},
+                {"condition" : "no_chests_opened", "spritepos" : [34, 129], "pos" : [163.5, 10], "size" : [58, 105]},
+                {"condition" : "chest_3_only", "spritepos" : [39, 250], "pos" : [168, 66], "size" : [49, 49]},
                 {"condition" : "chest_5_opened", "spritepos" : [0, 0], "pos" : [0, 0], "size" : [0, 0]}
             ]
         },

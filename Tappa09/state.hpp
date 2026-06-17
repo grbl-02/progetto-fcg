@@ -2,10 +2,12 @@
 #include "config.hpp"
 #include "player.hpp"
 #include "room.hpp"
+#include "flags.hpp"
 
 struct State
 {
     GameMode gameMode;
+    Flags flags;
     std::string roomname;
     Player player;
     Room room;
@@ -22,18 +24,6 @@ struct State
     sf::Shader* redflash;
     sf::Text gameOverText;
     sf::Text restartText;
-
-    // Progression tracking
-    bool chest_3_opened = false;
-    bool chest_5_opened = false;
-    bool chest_6_opened = false;
-
-    bool room_3_gauntlet_triggered = false;
-    bool room_3_gauntlet_cleared = false;
-    bool room_5_gauntlet_triggered = false;
-    bool room_5_gauntlet_cleared = false;
-    bool room_6_gauntlet_triggered = false;
-    bool room_6_gauntlet_cleared = false;
 
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);

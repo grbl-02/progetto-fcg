@@ -2,6 +2,8 @@
 #include "config.hpp"
 #include "environment.hpp"
 #include "enemies.hpp"
+#include "flags.hpp"
+#include "conditionEvaluator.hpp"
 
 struct Room
 {
@@ -24,7 +26,10 @@ struct Room
     std::string room_up;
     std::string room_down;
 
-    Room(std::string& filename);
+    Flags flags;
+    ConditionEvaluator conditionEvaluator;
+
+    Room(std::string& filename, Flags flags);
     sf::IntRect stringToIntRect(std::string tileID);
     void unload();
     void load(std::string& new_room);

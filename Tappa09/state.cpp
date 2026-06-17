@@ -1,7 +1,7 @@
 #include "state.hpp"
 
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
-    : room(room1), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8)
+    : room(room1, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8)
 {
     gameMode = PLAYING;
     roomname = room1;
@@ -29,7 +29,7 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
     player.draw(window, hitboxes, redflash);
 
     if (hitboxes && 
-        (roomname == "Risorse/maps-09/room1-stage0.json"
+        (roomname == "Risorse/maps-09/room1.json"
         || roomname == "Risorse/maps-09/room2.json"
         || roomname == "Risorse/maps-09/room4.json"))
     {
