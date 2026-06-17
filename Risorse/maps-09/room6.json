@@ -14,7 +14,7 @@
         "down" : {
             "pos" : [5, 9],
             "size" : [2, 1],
-            "room" : "Risorse/maps/room1.json"
+            "room" : "Risorse/maps-09/room1.json"
         }
     },
     "assets" : {
@@ -25,7 +25,10 @@
             "size" : [32, 28]
         },
         "spikes" : {
-            "condition" : "room_6_gauntlet_triggered_not_cleared"
+            "condition" : "room_6_gauntlet_triggered_not_cleared",
+            "spritepos" : [0, 0],
+            "pos" : [176, 256],
+            "size" : [32, 32]
         }
     },
     "enemies" : {

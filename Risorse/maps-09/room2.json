@@ -14,18 +14,22 @@
         "up" : {
             "pos" : [5, 3],
             "size" : [2, 1],
-            "room" : "Risorse/maps/room3.json"
+            "room" : "Risorse/maps-09/room3.json"
         },
         "right" : {
             "pos" : [12, 5],
             "size" : [1, 1],
-            "room" : "Risorse/maps/room1.json"
+            "room" : "Risorse/maps-09/room1.json"
         }
     },
     "enemies" : {
         "blueslime" : {
             "blueslime1" : {
                 "pos" : [48, 240],
+                "dir" : "right"
+            },
+            "blueslime2" : {
+                "pos" : [48, 112],
                 "dir" : "right"
             }
         }

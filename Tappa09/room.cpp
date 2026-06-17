@@ -232,11 +232,12 @@ void Room::load(std::string& new_room)
 
     if (mapData.contains("assets"))
     {
-        for (auto& asset: mapData["assets"])
+        for (auto& [asset_name, asset_data] : mapData["assets"].items())
         {
-            if (asset.contains("states"))
+            std::string name = asset_name;
+            if (asset_data.contains("states"))
             {
-                for (auto& state : asset["states"]) {
+                for (auto& state : asset_data["states"]) {
                     if (conditionEvaluator.evaluate(state["condition"]))
                     {
                         sf::Vector2f pos;
@@ -255,31 +256,31 @@ void Room::load(std::string& new_room)
                             texturePos.y = state["spritepos"][1].get<int>();
                         }
                         sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
-                        assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), asset, fsize));
+                        assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), name, fsize));
                     }
                 }
             }
-            else if (asset.contains("condition"))
+            else if (asset_data.contains("condition"))
             {
-                if (conditionEvaluator.evaluate(asset["condition"]))
+                if (conditionEvaluator.evaluate(asset_data["condition"]))
                 {
                     sf::Vector2f pos;
                     sf::Vector2i size;
                     sf::Vector2i texturePos;
-                    if (asset.contains("pos")) {
-                        pos.x = asset["pos"][0].get<float>();
-                        pos.y = asset["pos"][1].get<float>();
+                    if (asset_data.contains("pos")) {
+                        pos.x = asset_data["pos"][0].get<float>();
+                        pos.y = asset_data["pos"][1].get<float>();
                     }
-                    if (asset.contains("size")) {
-                        size.x = asset["size"][0].get<int>();
-                        size.y = asset["size"][1].get<int>();
+                    if (asset_data.contains("size")) {
+                        size.x = asset_data["size"][0].get<int>();
+                        size.y = asset_data["size"][1].get<int>();
                     }
-                    if (asset.contains("spritepos")) {
-                        texturePos.x = asset["spritepos"][0].get<int>();
-                        texturePos.y = asset["spritepos"][1].get<int>();
+                    if (asset_data.contains("spritepos")) {
+                        texturePos.x = asset_data["spritepos"][0].get<int>();
+                        texturePos.y = asset_data["spritepos"][1].get<int>();
                     }
                     sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
-                    assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), asset, fsize));
+                    assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), name, fsize));
                 }
             }
         }
@@ -290,7 +291,7 @@ void Room::load(std::string& new_room)
         int id = 0;
         for (auto& [enemy_type, enemy_list] : mapData["enemies"].items())
         {
-            name = enemy_type;
+            std::string name = enemy_type;
             for (auto& [enemy_id, enemy_data] : enemy_list.items())
             {
                 if (enemy_data.contains("condition"))
@@ -298,7 +299,6 @@ void Room::load(std::string& new_room)
                     if (conditionEvaluator.evaluate(enemy_data["condition"]))
                     {
                         sf::Vector2f pos;
-                        std::string name;
                         dir enemyDirection;
                         pos = {enemy_data["pos"][0], enemy_data["pos"][1]};
                         if (enemy_data["dir"] == "left") {
@@ -319,6 +319,29 @@ void Room::load(std::string& new_room)
                             enemies.push_back(std::make_unique<RedSlime>(pos, redSlimeTexture, enemyDirection, id));
                         id++;
                     }
+                }
+                else
+                {
+                    sf::Vector2f pos;
+                    dir enemyDirection;
+                    pos = {enemy_data["pos"][0], enemy_data["pos"][1]};
+                    if (enemy_data["dir"] == "left") {
+                        enemyDirection = LEFT;
+                    }
+                    else if (enemy_data["dir"] == "right") {
+                        enemyDirection = RIGHT;
+                    }
+                    else if (enemy_data["dir"] == "up") {
+                        enemyDirection = UP;
+                    }
+                    else if (enemy_data["dir"] == "down") {
+                        enemyDirection = DOWN;
+                    }
+                    if (name == "blueslime")
+                        enemies.push_back(std::make_unique<BlueSlime>(pos, blueSlimeTexture, enemyDirection, id));
+                    else
+                        enemies.push_back(std::make_unique<RedSlime>(pos, redSlimeTexture, enemyDirection, id));
+                    id++;
                 }
             }
         }

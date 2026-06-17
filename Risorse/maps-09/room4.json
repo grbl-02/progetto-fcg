@@ -14,12 +14,12 @@
         "left" : {
             "pos" : [0, 5],
             "size" : [1, 1],
-            "room" : "Risorse/maps/room1.json"
+            "room" : "Risorse/maps-09/room1.json"
         },
         "up" : {
             "pos" : [5, 3],
             "size" : [2, 1],
-            "room" : "Risorse/maps/room5.json"
+            "room" : "Risorse/maps-09/room5.json"
         }
     },
     "enemies": {

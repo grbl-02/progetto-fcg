@@ -14,17 +14,17 @@
         "left" : {
             "pos" : [0, 5],
             "size" : [1, 1],
-            "room" : "Risorse/maps/room2.json"
+            "room" : "Risorse/maps-09/room2.json"
         },
         "up" : {
             "pos" : [5, 3],
             "size" : [2, 1],
-            "room" : "Risorse/maps/room6.json"
+            "room" : "Risorse/maps-09/room6.json"
         },
         "right" : {
             "pos" : [12, 5],
             "size" : [1, 1],
-            "room" : "Risorse/maps/room4.json"
+            "room" : "Risorse/maps-09/room4.json"
         }
     },
     "assets" : {
