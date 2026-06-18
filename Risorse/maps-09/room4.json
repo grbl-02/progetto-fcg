@@ -25,7 +25,11 @@
     "enemies": {
         "redslime" : {
             "redslime1" : {
-                "pos" : [320, 240],
+                "pos" : [336, 112],
+                "dir" : "left"
+            },
+            "redslime2" : {
+                "pos" : [336, 240],
                 "dir" : "left"
             }
         }

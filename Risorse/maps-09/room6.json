@@ -19,10 +19,26 @@
     },
     "assets" : {
         "chest" : {
-            "condition" : "room_6_gauntlet_cleared",
-            "spritepos" : [164, 32],
-            "pos" : [176.5, 80],
-            "size" : [32, 28]
+            "states": [
+                {
+                    "condition" : "room_6_gauntlet_cleared_but_chest_not_fallen",
+                    "spritepos" : [164, 32],
+                    "pos" : [176.5, -28],
+                    "size" : [32, 28]
+                },
+                {
+                    "condition" : "chest_6_fell",
+                    "spritepos" : [164, 32],
+                    "pos" : [176.5, 80],
+                    "size" : [32, 28]
+                },
+                {
+                    "condition" : "chest_6_opened",
+                    "spritepos" : [164, 62],
+                    "pos" : [176.5, 79],
+                    "size" : [32, 30]
+                }
+            ]
         },
         "spikes" : {
             "spikes1" : {

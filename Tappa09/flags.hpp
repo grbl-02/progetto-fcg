@@ -11,4 +11,8 @@ struct Flags {
     bool room_5_gauntlet_cleared = false;
     bool room_6_gauntlet_triggered = false;
     bool room_6_gauntlet_cleared = false;
+    
+    bool chest_3_fell = false;
+    bool chest_5_fell = false;
+    bool chest_6_fell = false;
 };

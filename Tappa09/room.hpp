@@ -27,6 +27,7 @@ struct Room
     int animation_frames[2] = {0, 0};
     bool spikesDisappearing;
     bool animationEnded;
+    bool chestFalls;
 
     std::string room_left;
     std::string room_right;
@@ -45,5 +46,6 @@ struct Room
     void enemyDeathCleanUp();
     void spikesAnimation();
     void spikesDisappearingAnimation();
+    int chestFalling(float elapsed);
     void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash);
 };

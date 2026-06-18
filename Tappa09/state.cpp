@@ -382,9 +382,6 @@ void State::update(float elapsed, sf::View& camera)
         {
             playerInteracting = false;
             interactionIsHappening = false;
-            if (checkingChest3 && !flags.chest_3_opened) flags.chest_3_opened = true;
-            if (checkingChest5 && !flags.chest_5_opened) flags.chest_5_opened = true;
-            if (checkingChest6 && !flags.chest_6_opened) flags.chest_6_opened = true;
             if (flags.chest_6_opened) gameMode = VICTORY;
         }
     }
@@ -456,6 +453,10 @@ void State::update(float elapsed, sf::View& camera)
         room.unload();
         room.load(room.name);
     }
+    int value = room.chestFalling(elapsed);
+    if (value == 0) flags.chest_3_fell = true;
+    if (value == 1) flags.chest_5_fell = true;
+    if (value == 2) flags.chest_6_fell = true;
 }
 
 void State::reset()
@@ -464,6 +465,7 @@ void State::reset()
     roomname = room1;
 
     flags = {false, false, false,
+             false, false, false,
              false, false, false,
              false, false, false};
 
@@ -594,19 +596,34 @@ void State::chestCheck()
                     interactionIsHappening = true;
                     if (room.name == "Risorse/maps-09/room3.json")
                     {
-                        if (flags.chest_3_opened) interaction("chest_opened");
-                        else interaction("chest_opening3");
+                        if (!flags.chest_3_opened)
+                        {
+                            interaction("chest_opening3");
+                            flags.chest_3_opened = true;
+                            room.unload();
+                            room.load(room.name);
+                        }
+                        else interaction("chest_opened");
                         checkingChest3 = true;
                     }
                     else if (room.name == "Risorse/maps-09/room5.json")
                     {
-                        if (flags.chest_5_opened) interaction("chest_opened");
-                        else interaction("chest_opening5");
+                        if (!flags.chest_5_opened)
+                        {
+                            interaction("chest_opening5");
+                            flags.chest_5_opened = true;
+                            room.unload();
+                            room.load(room.name);
+                        }
+                        else interaction("chest_opened");
                         checkingChest5 = true;
                     }
                     else if (room.name == "Risorse/maps-09/room6.json")
                     {
                         interaction("chest_opening6");
+                        flags.chest_6_opened = true;
+                        room.unload();
+                        room.load(room.name);
                         checkingChest6 = true;
                     }
                 }

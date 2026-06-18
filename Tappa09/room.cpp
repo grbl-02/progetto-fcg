@@ -7,6 +7,7 @@ Room::Room(std::string& filename, Flags& flags) : conditionEvaluator(flags)
     spikesDisappearing = false;
     animationEnded = false;
     animation_clock.reset();
+    chestFalls = false;
     roomTexture = sf::Texture(all_tiles);
     assetsTexture = sf::Texture(all_assets);
     blueSlimeTexture = sf::Texture(blueSlime);
@@ -144,6 +145,7 @@ void Room::unload()
         animation_frames[i] = 0;
     spikesDisappearing = false;
     animationEnded = false;
+    chestFalls = false;
 }
 
 void Room::load(std::string& new_room)
@@ -272,30 +274,13 @@ void Room::load(std::string& new_room)
                         }
                         sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
                         assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), name, fsize));
+
+                        if (state["condition"] == "room_3_gauntlet_cleared_but_chest_not_fallen"
+                            || state["condition"] == "room_5_gauntlet_cleared_but_chest_not_fallen"
+                            || state["condition"] == "room_6_gauntlet_cleared_but_chest_not_fallen") {
+                            chestFalls = true;
+                        }
                     }
-                }
-            }
-            else if (asset_data.contains("condition"))
-            {
-                if (conditionEvaluator.evaluate(asset_data["condition"]))
-                {
-                    sf::Vector2f pos;
-                    sf::Vector2i size;
-                    sf::Vector2i texturePos;
-                    if (asset_data.contains("pos")) {
-                        pos.x = asset_data["pos"][0].get<float>();
-                        pos.y = asset_data["pos"][1].get<float>();
-                    }
-                    if (asset_data.contains("size")) {
-                        size.x = asset_data["size"][0].get<int>();
-                        size.y = asset_data["size"][1].get<int>();
-                    }
-                    if (asset_data.contains("spritepos")) {
-                        texturePos.x = asset_data["spritepos"][0].get<int>();
-                        texturePos.y = asset_data["spritepos"][1].get<int>();
-                    }
-                    sf::Vector2f fsize = sf::Vector2f({(float)size.x, (float)size.y});
-                    assets.push_back(Asset(pos, assetsTexture, sf::IntRect(texturePos, size), name, fsize));
                 }
             }
             else
@@ -637,11 +622,8 @@ void Room::spikesDisappearingAnimation()
             {
                 spikesVec[i]->sprite.setTextureRect(sf::IntRect({animation_frames[i]*32, 0}, {32, 32}));
                 animation_frames[i]--;
-                if (animation_frames[i] < 0)
-                {
-                    if (i == 1)
+                if (animation_frames[i] < 0 && i == 1)
                         animationEnded = true;
-                }
             }
 
             if (animationEnded)
@@ -655,4 +637,26 @@ void Room::spikesDisappearingAnimation()
             }
         }
     }
+}
+
+int Room::chestFalling(float elapsed)
+{
+    if (chestFalls)
+    {
+        for (auto& asset : assets)
+        {
+            if (asset.name == "chest")
+            {
+                if (asset.pos.y >= 80.f)
+                {
+                    chestFalls = false;
+                    if (name == "Risorse/maps-09/room3.json") return 0;
+                    else if (name == "Risorse/maps-09/room5.json") return 1;
+                    else if (name == "Risorse/maps-09/room6.json") return 2;
+                }
+                asset.pos.y += chest_falling_speed * elapsed;
+            }
+        }
+    }
+    return -1;
 }

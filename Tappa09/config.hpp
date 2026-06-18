@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <vector>
 #include <fstream>
 #include <queue>
@@ -37,6 +38,7 @@ inline const float fireball_speed = 60.f;
 // oggetti
 inline const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";
 inline const char* spikes = "Risorse/basic_caves_and_dungeons/assets/spikes.png";
+inline const float chest_falling_speed = 100.0;
 
 // nemici
 inline const char* blueSlime = "Risorse/sprites/characters/slime.png";
