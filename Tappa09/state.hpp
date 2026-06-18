@@ -3,11 +3,15 @@
 #include "player.hpp"
 #include "room.hpp"
 #include "flags.hpp"
+#include "textbox.hpp"
+#include "dialogueManager.hpp"
 
 struct State
 {
     GameMode gameMode;
     Flags flags;
+    Textbox textbox;
+    DialogueManager dialogueManager;
     std::string roomname;
     Player player;
     Room room;
@@ -18,12 +22,15 @@ struct State
     bool move_player_right;
     bool playerAttacks;
     bool playerMoving;
+    bool playerInteracting;
     bool hitboxes;
     dir lastPressed;
     sf::Shader* flash;
     sf::Shader* redflash;
     sf::Text gameOverText;
     sf::Text restartText;
+    bool interactionIsHappening;
+    bool continueDialogue;
 
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
@@ -39,4 +46,7 @@ struct State
     void clear_gauntlet3();
     void clear_gauntlet5();
     void clear_gauntlet6();
+
+    void chestCheck();
+    void interaction(std::string dialogue);
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <fstream>
+#include <queue>
 #include <nlohmann/json.hpp>
 #include <SFML/Graphics.hpp>
 

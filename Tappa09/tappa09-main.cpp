@@ -54,6 +54,14 @@ void handle(const sf::Event::KeyPressed& key, State& state)
         case sf::Keyboard::Scancode::X:
             state.playerAttacks = true;
             return;
+        case sf::Keyboard::Scancode::Z:
+            if (state.interactionIsHappening) state.continueDialogue = true;
+            state.playerInteracting = true;
+            return;
+        case sf::Keyboard::Scancode::Enter:
+            if (state.gameMode == GAME_OVER)
+                state.reset();
+            return;
         default:
             return;
     }
@@ -82,12 +90,6 @@ void handle(const sf::Event::KeyReleased& key, State& state)
             state.move_player_right = false;
             state.lastPressed = RIGHT;
             state.playerMoving = false;
-            return;
-        case sf::Keyboard::Scancode::Enter:
-            if (state.gameMode == GAME_OVER)
-            {
-                state.reset();
-            }
             return;
         default:
             return;

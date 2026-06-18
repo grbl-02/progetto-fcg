@@ -1,7 +1,7 @@
 #include "state.hpp"
 
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
-    : room(room1, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8)
+    : room(room1, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8), textbox(font)
 {
     gameMode = PLAYING;
     roomname = room1;
@@ -12,9 +12,12 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
     lastPressed = UP;
     playerAttacks = false;
     playerMoving = false;
+    playerInteracting = false;
     hitboxes = false;
     this->flash = &flash;
     this->redflash = &redflash;
+    interactionIsHappening = false;
+    continueDialogue = false;
 
     gameOverText.setFillColor(sf::Color::White);
     gameOverText.setPosition({((float)window_width / 3.f - gameOverText.getGlobalBounds().size.x) / 2.f, 50.f});
@@ -27,6 +30,7 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
 {
     room.draw(window, hitboxes, flash);
     player.draw(window, hitboxes, redflash);
+    textbox.draw(window);
 
     if (hitboxes && 
         (roomname == "Risorse/maps-09/room1.json"
@@ -278,6 +282,7 @@ void State::hit()
 
 void State::update(float elapsed)
 {
+    chestCheck();
     if (player.dead)
     {
         player.animation(9, idleFrameTime);
@@ -286,7 +291,7 @@ void State::update(float elapsed)
             gameMode = GAME_OVER;
         }
     }
-    else
+    else if (!playerInteracting)
     {
         if (playerAttacks)
         {
@@ -315,22 +320,21 @@ void State::update(float elapsed)
                 int row = 0;
                 switch (lastPressed)
                 {
-                    case UP:
-                        row = 2;
-                        break;
-                    case DOWN:
-                        row = 0;
-                        break;
-                    case LEFT:
-                        row = 1;
-                        break;
-                    case RIGHT:
-                        row = 1;
-                        break;
+                    case UP: row = 2; break;
+                    case DOWN: row = 0; break;
+                    case LEFT: row = 1; break;
+                    case RIGHT: row = 1; break;
                 }
                 player.animation(row, idleFrameTime);
             }
         }
+    }
+    else if (continueDialogue)
+    {
+        textbox.showNextLine();
+        continueDialogue = false;
+        if (!textbox.isActive)
+            playerInteracting = false;
     }
     for (auto& enemy : room.enemies)
     {
@@ -361,9 +365,7 @@ void State::update(float elapsed)
 
     hit();
     if (player.isInvincible)
-    {
         player.invincibilityTime();
-    }
     room.enemyDeathCleanUp();
     room.enemyCollisions();
     room.enemyWallCollisions();
@@ -395,8 +397,11 @@ void State::reset()
     move_player_right = false;
     playerAttacks = false;
     playerMoving = false;
+    playerInteracting = false;
     hitboxes = false;
     lastPressed = UP;
+    interactionIsHappening = false;
+    continueDialogue = false;
 
     player.reset();
 }
@@ -473,4 +478,41 @@ void State::clear_gauntlet6()
             room.load(room.name);
         }
     }
+}
+
+void State::chestCheck()
+{
+    if (playerInteracting && !interactionIsHappening)
+    {
+        for (auto& asset : room.assets)
+        {
+            if (asset.name == "chest")
+            {
+                if (player.hitbox.position.x >= asset.pos.x
+                    && player.hitbox.position.x + player.hitbox.size.x <= asset.pos.x + asset.size.x
+                    && player.hitbox.position.y - (asset.pos.y + asset.size.y) <= 1.f)
+                {
+                    interactionIsHappening = true;
+                    if (room.name == "Risorse/maps-09/room3.json" || room.name == "Risorse/maps-09/room5.json")
+                        interaction("chest_opening");
+                    else if (room.name == "Risorse/maps-09/room6.json")
+                        ;
+                }
+            }
+        }
+    }
+    if (!interactionIsHappening)
+        playerInteracting = false;
+}
+
+void State::interaction(std::string dialogue)
+{
+    textbox.isActive = true;
+    while (!textbox.dialogue_queue.empty())
+        textbox.dialogue_queue.pop();
+
+    for (const auto& line : dialogueManager.dialogueMap[dialogue])
+        textbox.dialogue_queue.push(line);
+    
+    textbox.showNextLine();
 }
