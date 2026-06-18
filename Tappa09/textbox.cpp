@@ -2,10 +2,10 @@
 
 Textbox::Textbox(sf::Font& font) : text(font, "", 8)
 {
-    box = sf::RectangleShape({(float)window_width / 3.f, (float)window_height / 6.f});
-    box.setPosition({0.f, 6 * 32.f});
+    box = sf::RectangleShape({(float)window_width / 3.f, (float)window_height / 15.f});
+    box.setPosition({0.f, 8 * 32.f});
     box.setFillColor(sf::Color::Black);
-    text.setPosition({0.f, 6 * 32.f});
+    text.setPosition({box.getPosition().x + 10.f, box.getPosition().y + 10.f});
     isActive = false;
 }
 

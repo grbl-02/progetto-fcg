@@ -19,7 +19,7 @@ Player::Player() : sprite(texture)
     isAttacking = false;
     slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
     slashHit = false;
-    healthPoints = 3;
+    healthPoints = 10;
     isInvincible = false;
     isHurt = false;
     redFlashClock.reset();
@@ -273,7 +273,7 @@ void Player::reset()
     isAttacking = false;
     slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
     slashHit = false;
-    healthPoints = 3;
+    healthPoints = 10;
     isInvincible = false;
     isHurt = false;
     redFlashClock.reset();

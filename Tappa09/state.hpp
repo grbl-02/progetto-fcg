@@ -29,8 +29,12 @@ struct State
     sf::Shader* redflash;
     sf::Text gameOverText;
     sf::Text restartText;
+    sf::Text victoryText;
     bool interactionIsHappening;
     bool continueDialogue;
+    bool checkingChest3;
+    bool checkingChest5;
+    bool checkingChest6;
 
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);

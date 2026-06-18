@@ -1,7 +1,7 @@
 #include "state.hpp"
 
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
-    : room(room1, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8), textbox(font)
+    : room(room1, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8), victoryText(font, "YOU WON!", 32), textbox(font)
 {
     gameMode = PLAYING;
     roomname = room1;
@@ -18,12 +18,18 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
     this->redflash = &redflash;
     interactionIsHappening = false;
     continueDialogue = false;
+    checkingChest3 = false;
+    checkingChest5 = false;
+    checkingChest6 = false;
 
     gameOverText.setFillColor(sf::Color::White);
     gameOverText.setPosition({((float)window_width / 3.f - gameOverText.getGlobalBounds().size.x) / 2.f, 50.f});
 
     restartText.setFillColor(sf::Color::White);
     restartText.setPosition({((float)window_width / 3.f - restartText.getGlobalBounds().size.x) / 2.f, 200.f});
+
+    victoryText.setFillColor(sf::Color::White);
+    victoryText.setPosition({((float)window_width / 3.f - victoryText.getGlobalBounds().size.x) / 2.f, 50.f});
 }
 
 void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash)
@@ -50,6 +56,11 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
     if (gameMode == GAME_OVER)
     {
         window.draw(gameOverText);
+        window.draw(restartText);
+    }
+    if (gameMode == VICTORY)
+    {
+        window.draw(victoryText);
         window.draw(restartText);
     }
 }
@@ -283,7 +294,11 @@ void State::hit()
 void State::update(float elapsed)
 {
     chestCheck();
-    if (player.dead)
+    if (gameMode == VICTORY)
+    {
+        player.animation(2, idleFrameTime);
+    }
+    else if (player.dead)
     {
         player.animation(9, idleFrameTime);
         if (player.deathAnimationEnded)
@@ -334,7 +349,14 @@ void State::update(float elapsed)
         textbox.showNextLine();
         continueDialogue = false;
         if (!textbox.isActive)
+        {
             playerInteracting = false;
+            interactionIsHappening = false;
+            if (checkingChest3 && !flags.chest_3_opened) flags.chest_3_opened = true;
+            if (checkingChest5 && !flags.chest_5_opened) flags.chest_5_opened = true;
+            if (checkingChest6 && !flags.chest_6_opened) flags.chest_6_opened = true;
+            if (flags.chest_6_opened) gameMode = VICTORY;
+        }
     }
     for (auto& enemy : room.enemies)
     {
@@ -402,6 +424,9 @@ void State::reset()
     lastPressed = UP;
     interactionIsHappening = false;
     continueDialogue = false;
+    checkingChest3 = false;
+    checkingChest5 = false;
+    checkingChest6 = false;
 
     player.reset();
 }
@@ -493,10 +518,23 @@ void State::chestCheck()
                     && player.hitbox.position.y - (asset.pos.y + asset.size.y) <= 1.f)
                 {
                     interactionIsHappening = true;
-                    if (room.name == "Risorse/maps-09/room3.json" || room.name == "Risorse/maps-09/room5.json")
-                        interaction("chest_opening");
+                    if (room.name == "Risorse/maps-09/room3.json")
+                    {
+                        if (flags.chest_3_opened) interaction("chest_opened");
+                        else interaction("chest_opening3");
+                        checkingChest3 = true;
+                    }
+                    else if (room.name == "Risorse/maps-09/room5.json")
+                    {
+                        if (flags.chest_5_opened) interaction("chest_opened");
+                        else interaction("chest_opening5");
+                        checkingChest5 = true;
+                    }
                     else if (room.name == "Risorse/maps-09/room6.json")
-                        ;
+                    {
+                        interaction("chest_opening6");
+                        checkingChest6 = true;
+                    }
                 }
             }
         }

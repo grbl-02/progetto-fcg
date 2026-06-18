@@ -59,7 +59,7 @@ void handle(const sf::Event::KeyPressed& key, State& state)
             state.playerInteracting = true;
             return;
         case sf::Keyboard::Scancode::Enter:
-            if (state.gameMode == GAME_OVER)
+            if (state.gameMode == GAME_OVER || state.gameMode == VICTORY)
                 state.reset();
             return;
         default:
