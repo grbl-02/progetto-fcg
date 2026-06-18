@@ -21,6 +21,18 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
     checkingChest3 = false;
     checkingChest5 = false;
     checkingChest6 = false;
+    spawningSmoke = sf::Texture(spawnSprites);
+
+    for (int i = 0; i < 4; i++)
+    {
+        sf::Sprite sprite = sf::Sprite(spawningSmoke, sf::IntRect({0, 0}, {32, 32}));
+        sprite.setPosition(spritePositions[i]);
+        spawningSmokeSprites.push_back(sprite);
+    }
+
+    start_animations = false;
+    animation_clock.reset();
+    clockActive = false;
 
     gameOverText.setFillColor(sf::Color::White);
     gameOverText.setPosition({((float)window_width / 3.f - gameOverText.getGlobalBounds().size.x) / 2.f, 50.f});
@@ -37,6 +49,14 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
     room.draw(window, hitboxes, flash);
     player.draw(window, hitboxes, redflash);
     textbox.draw(window);
+
+    if (start_animations)
+    {
+        for (auto& sprite : spawningSmokeSprites)
+        {
+            window.draw(sprite);
+        }
+    }
 
     if (hitboxes && 
         (roomname == "Risorse/maps-09/room1.json"
@@ -291,7 +311,7 @@ void State::hit()
     }
 }
 
-void State::update(float elapsed)
+void State::update(float elapsed, sf::View& camera)
 {
     chestCheck();
     if (gameMode == VICTORY)
@@ -347,6 +367,16 @@ void State::update(float elapsed)
     else if (continueDialogue)
     {
         textbox.showNextLine();
+        // gestione screenshake
+        if (textbox.text.getString() == "..." && !shakeDone) 
+        {
+            screenShakeDuration = 0.3f;
+            shakeDone = true;
+        }
+        else if (textbox.text.getString() != "...") 
+        {
+            shakeDone = false; 
+        }
         continueDialogue = false;
         if (!textbox.isActive)
         {
@@ -358,6 +388,24 @@ void State::update(float elapsed)
             if (flags.chest_6_opened) gameMode = VICTORY;
         }
     }
+    if (screenShakeDuration > 0.f) 
+    {
+        screenShakeDuration -= elapsed;
+
+        if (screenShakeDuration <= 0.f) 
+        {
+            camera.setCenter(center);
+            screenShakeDuration = 0.f; 
+        } 
+        else 
+        {
+            float offsetX = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
+            float offsetY = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
+            camera.setCenter(center + sf::Vector2f(offsetX, offsetY));
+        }
+    }
+    else
+        camera.setCenter(center);
     for (auto& enemy : room.enemies)
     {
         if (enemy->isDead)
@@ -396,9 +444,12 @@ void State::update(float elapsed)
     trigger_gauntlet3();
     clear_gauntlet3();
     trigger_gauntlet5();
+    spawnAnimation();
     clear_gauntlet5();
     trigger_gauntlet6();
+    spawnAnimation();
     clear_gauntlet6();
+    spawnAnimation();
 }
 
 void State::reset()
@@ -427,6 +478,13 @@ void State::reset()
     checkingChest3 = false;
     checkingChest5 = false;
     checkingChest6 = false;
+    start_animations = false;
+    animation_clock.reset();
+    clockActive = false;
+    for (int i = 0; i < 4; i++)
+    {
+        animation_frames[i] = 0;
+    }
 
     player.reset();
 }
@@ -438,6 +496,8 @@ void State::trigger_gauntlet3()
         if (player.hitbox.position.y + player.hitbox.size.y < 256.f)
         {
             flags.room_3_gauntlet_triggered = true;
+            start_animations = true;
+            room.unload();
             room.load(room.name);
         }
     }
@@ -450,6 +510,7 @@ void State::trigger_gauntlet5()
         if (player.hitbox.position.y + player.hitbox.size.y < 256.f)
         {
             flags.room_5_gauntlet_triggered = true;
+            start_animations = true;
             room.unload();
             room.load(room.name);
         }
@@ -463,6 +524,7 @@ void State::trigger_gauntlet6()
         if (player.hitbox.position.y + player.hitbox.size.y < 256.f)
         {
             flags.room_6_gauntlet_triggered = true;
+            start_animations = true;
             room.unload();
             room.load(room.name);
         }
@@ -553,4 +615,41 @@ void State::interaction(std::string dialogue)
         textbox.dialogue_queue.push(line);
     
     textbox.showNextLine();
+}
+
+void State::spawnAnimation()
+{
+    if (start_animations)
+    {
+        if (!clockActive)
+        {
+            animation_clock.restart();
+            clockActive = true;
+        }
+        if (animation_clock.getElapsedTime().asSeconds() >= spawnFrameTime)
+        {
+            bool animationEnded  = false;
+            for (int i = 0; i < spawningSmokeSprites.size(); i++)
+            {
+                animation_frames[i]++;
+                if (animation_frames[i] >= 5)
+                {
+                    if (i == 3)
+                        animationEnded = true;
+                    animation_frames[i] = 0;
+                }
+                spawningSmokeSprites[i].setTextureRect(sf::IntRect({animation_frames[i]*32, 0}, {32, 32}));
+            }
+
+            if (animationEnded)
+            {
+                start_animations = false;
+                clockActive = false;
+            }
+            else
+            {
+                animation_clock.restart();
+            }
+        }
+    }
 }

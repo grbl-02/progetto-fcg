@@ -21,6 +21,11 @@ inline const float invincibilityFlashInterval = 0.025f;
 inline const float movFrameTime = 0.1;
 inline const float idleFrameTime = 0.2;
 inline const float slashFrameTime = 0.075;
+inline const float spawnFrameTime = 0.05f;
+inline float screenShakeDuration = 0.f;
+inline const float intensity = 10.f;
+inline const sf::Vector2f center = {192.f, 144.f};
+inline bool shakeDone = false;
 
 // stanza
 inline const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.png";
@@ -37,6 +42,7 @@ inline const char* spikes = "Risorse/basic_caves_and_dungeons/assets/spikes.png"
 inline const char* blueSlime = "Risorse/sprites/characters/slime.png";
 inline const char* redSlime = "Risorse/sprites/characters/redslime.png";
 inline const char* fireballSprites = "Risorse/sprites/characters/fireballs.png";
+inline const char* spawnSprites = "Risorse/basic_caves_and_dungeons/assets/smoke.png";
 inline const float jumpdist = 64.f;
 inline const float jumptime = 0.5f;
 inline const float cooldown = 1.f;

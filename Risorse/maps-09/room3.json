@@ -48,7 +48,7 @@
             },
             "blueslime2" : {
                 "condition" : "room_3_gauntlet_triggered_not_cleared",
-                "pos" : [320, 240],
+                "pos" : [336, 240],
                 "dir" : "left"
             },
             "blueslime3" : {
@@ -58,7 +58,7 @@
             },
             "blueslime4" : {
                 "condition" : "room_3_gauntlet_triggered_not_cleared",
-                "pos" : [320, 112],
+                "pos" : [336, 112],
                 "dir" : "left"
             }
         }

@@ -152,10 +152,11 @@ int main()
         );
 
         // update
-        state.update(clock.restart().asSeconds());
+        state.update(clock.restart().asSeconds(), camera);
 
         // display
         window.clear(sf::Color::Black);
+        window.setView(camera);
         state.draw(window, shader, redShader);
         window.display();
     }
