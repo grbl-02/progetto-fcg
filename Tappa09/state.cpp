@@ -444,12 +444,18 @@ void State::update(float elapsed, sf::View& camera)
     trigger_gauntlet3();
     clear_gauntlet3();
     trigger_gauntlet5();
-    spawnAnimation();
     clear_gauntlet5();
     trigger_gauntlet6();
-    spawnAnimation();
     clear_gauntlet6();
+
     spawnAnimation();
+    room.spikesAnimation();
+    room.spikesDisappearingAnimation();
+    if (room.animationEnded)
+    {
+        room.unload();
+        room.load(room.name);
+    }
 }
 
 void State::reset()
@@ -499,6 +505,7 @@ void State::trigger_gauntlet3()
             start_animations = true;
             room.unload();
             room.load(room.name);
+            room.start_animations = true;
         }
     }
 }
@@ -513,6 +520,7 @@ void State::trigger_gauntlet5()
             start_animations = true;
             room.unload();
             room.load(room.name);
+            room.start_animations = true;
         }
     }
 }
@@ -527,6 +535,7 @@ void State::trigger_gauntlet6()
             start_animations = true;
             room.unload();
             room.load(room.name);
+            room.start_animations = true;
         }
     }
 }
@@ -537,8 +546,9 @@ void State::clear_gauntlet3()
     {
         if (room.enemies.empty()){
             flags.room_3_gauntlet_cleared = true;
-            room.unload();
-            room.load(room.name);
+            room.spikesDisappearing = true;
+            for (int i = 0; i < 2; i++)
+                room.animation_frames[i] = 2;
         }
     }
 }
@@ -549,8 +559,9 @@ void State::clear_gauntlet5()
     {
         if (room.enemies.empty()){
             flags.room_5_gauntlet_cleared = true;
-            room.unload();
-            room.load(room.name);
+            room.spikesDisappearing = true;
+            for (int i = 0; i < 2; i++)
+                room.animation_frames[i] = 2;
         }
     }
 }
@@ -561,8 +572,9 @@ void State::clear_gauntlet6()
     {
         if (room.enemies.empty()){
             flags.room_6_gauntlet_cleared = true;
-            room.unload();
-            room.load(room.name);
+            room.spikesDisappearing = true;
+            for (int i = 0; i < 2; i++)
+                room.animation_frames[i] = 2;
         }
     }
 }

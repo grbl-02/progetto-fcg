@@ -2,6 +2,11 @@
 
 Room::Room(std::string& filename, Flags& flags) : conditionEvaluator(flags)
 {
+    start_animations = false;
+    clock_active = false;
+    spikesDisappearing = false;
+    animationEnded = false;
+    animation_clock.reset();
     roomTexture = sf::Texture(all_tiles);
     assetsTexture = sf::Texture(all_assets);
     blueSlimeTexture = sf::Texture(blueSlime);
@@ -131,6 +136,14 @@ void Room::unload()
     right_exit = sf::IntRect();
     up_exit = sf::IntRect();
     down_exit = sf::IntRect();
+
+    start_animations = false;
+    clock_active = false;
+    animation_clock.reset();
+    for (int i = 0; i < 2; i++)
+        animation_frames[i] = 0;
+    spikesDisappearing = false;
+    animationEnded = false;
 }
 
 void Room::load(std::string& new_room)
@@ -553,5 +566,93 @@ void Room::enemyDeathCleanUp()
         }
         else
             i++;
+    }
+}
+
+void Room::spikesAnimation()
+{
+    if (start_animations)
+    {
+        std::vector<Asset*> spikesVec;
+        for (auto& asset : assets)
+        {
+            if (asset.name == "spikes")
+            {
+                spikesVec.push_back(&asset);
+            }
+        }
+        if (!clock_active)
+        {
+            animation_clock.restart();
+            clock_active = true;
+        }
+        if (animation_clock.getElapsedTime().asSeconds() >= spawnFrameTime)
+        {
+            bool animationEnds = false;
+            for (int i = 0; i < spikesVec.size(); i++)
+            {
+                spikesVec[i]->sprite.setTextureRect(sf::IntRect({animation_frames[i]*32, 0}, {32, 32}));
+                animation_frames[i]++;
+                if (animation_frames[i] >= 3)
+                {
+                    if (i == 1)
+                        animationEnds = true;
+                    animation_frames[i] = 0;
+                }
+            }
+
+            if (animationEnds)
+            {
+                start_animations = false;
+                clock_active = false;
+            }
+            else
+            {
+                animation_clock.restart();
+            }
+        }
+    }
+}
+
+void Room::spikesDisappearingAnimation()
+{
+    if (spikesDisappearing)
+    {
+        std::vector<Asset*> spikesVec;
+        for (auto& asset : assets)
+        {
+            if (asset.name == "spikes")
+            {
+                spikesVec.push_back(&asset);
+            }
+        }
+        if (!clock_active)
+        {
+            animation_clock.restart();
+            clock_active = true;
+        }
+        if (animation_clock.getElapsedTime().asSeconds() >= spawnFrameTime)
+        {
+            for (int i = 0; i < spikesVec.size(); i++)
+            {
+                spikesVec[i]->sprite.setTextureRect(sf::IntRect({animation_frames[i]*32, 0}, {32, 32}));
+                animation_frames[i]--;
+                if (animation_frames[i] < 0)
+                {
+                    if (i == 1)
+                        animationEnded = true;
+                }
+            }
+
+            if (animationEnded)
+            {
+                spikesDisappearing = false;
+                clock_active = false;
+            }
+            else
+            {
+                animation_clock.restart();
+            }
+        }
     }
 }

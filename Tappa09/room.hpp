@@ -21,6 +21,12 @@ struct Room
     sf::IntRect right_exit;
     sf::IntRect up_exit;
     sf::IntRect down_exit;
+    bool start_animations;
+    bool clock_active;
+    sf::Clock animation_clock;
+    int animation_frames[2] = {0, 0};
+    bool spikesDisappearing;
+    bool animationEnded;
 
     std::string room_left;
     std::string room_right;
@@ -37,5 +43,7 @@ struct Room
     void enemyCollisions();
     void enemyWallCollisions();
     void enemyDeathCleanUp();
+    void spikesAnimation();
+    void spikesDisappearingAnimation();
     void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash);
 };
