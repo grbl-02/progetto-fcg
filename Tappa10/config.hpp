@@ -56,6 +56,7 @@ inline const char* heartsSprites = "Risorse/basic_caves_and_dungeons/assets/Heal
 
 enum dir { UP, DOWN, LEFT, RIGHT };
 enum GameMode { MENU, PLAYING, GAME_OVER, VICTORY };
+enum Difficulty { NORMAL, HARD };
 
 struct FloatCircle {
     sf::Vector2f center;

@@ -45,5 +45,5 @@ struct Player
     void enter_up_pos();
     void enter_down_pos();
     void invincibilityTime();
-    void reset();
+    void reset(Difficulty difficulty);
 };

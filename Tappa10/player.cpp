@@ -255,7 +255,7 @@ void Player::invincibilityTime()
     }
 }
 
-void Player::reset()
+void Player::reset(Difficulty difficulty)
 {
     texture = sf::Texture(player_texture);
     sprite = sf::Sprite(texture);
@@ -273,7 +273,10 @@ void Player::reset()
     isAttacking = false;
     slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
     slashHit = false;
-    healthPoints = 10;
+    if (difficulty == NORMAL)
+        healthPoints = 10;
+    else
+        healthPoints = 1;
     isInvincible = false;
     isHurt = false;
     redFlashClock.reset();

@@ -35,7 +35,9 @@ void handle(const sf::Event::KeyPressed& key, State& state, sf::RenderWindow& wi
         case sf::Keyboard::Scancode::Up:
             if (state.gameMode == MENU)
             {
-                state.menu.option = (state.menu.option + 1) % 2;
+                if (state.menu.option == 0)
+                    state.menu.option = 2;
+                else state.menu.option --;
             }
             else
             {
@@ -46,7 +48,7 @@ void handle(const sf::Event::KeyPressed& key, State& state, sf::RenderWindow& wi
         case sf::Keyboard::Scancode::Down:
             if (state.gameMode == MENU)
             {
-                state.menu.option = (state.menu.option + 1) % 2;
+                state.menu.option = (state.menu.option + 1) % 3;
             }
             else
             {
@@ -69,22 +71,25 @@ void handle(const sf::Event::KeyPressed& key, State& state, sf::RenderWindow& wi
             state.playerAttacks = true;
             return;
         case sf::Keyboard::Scancode::Z:
-            if (state.gameMode == MENU)
-            {
-                if (state.menu.option == 0)
-                    state.gameMode = PLAYING;
-                else
+            if (state.gameMode == MENU) {
+                if (state.menu.option == 0) {
+                    state.reset(NORMAL);
+                } else if (state.menu.option == 1) {
+                    state.reset(HARD);
+                } else
                     window.close();
-            }
-            else
-            {
+            } else {
                 if (state.interactionIsHappening) state.continueDialogue = true;
                 if (state.gameMode != VICTORY) state.playerInteracting = true;
             }
             return;
         case sf::Keyboard::Scancode::Enter:
             if (state.gameMode == GAME_OVER || state.gameMode == VICTORY)
-                state.reset();
+                state.reset(state.difficulty);
+            return;
+        case sf::Keyboard::Scancode::Escape:
+            if (state.gameMode == GAME_OVER || state.gameMode == VICTORY)
+                state.gameMode = MENU;
             return;
         default:
             return;

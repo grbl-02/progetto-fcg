@@ -16,7 +16,7 @@ FetchContent_MakeAvailable(SFML)
 
 FetchContent_Declare(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG        v3.11.3 # It's best to lock onto a specific stable version
+    GIT_TAG        v3.11.3
 )
 FetchContent_MakeAvailable(json)
 

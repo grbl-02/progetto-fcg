@@ -1,9 +1,10 @@
 #include "state.hpp"
 
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
-    : room(room0, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8),
+    : room(room0, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart or ESC to quit to menu.", 8),
       victoryText(font, "YOU WON!", 32), textbox(font), hud(heartsTexture, player.healthPoints), menu(font)
 {
+    difficulty = NORMAL;
     heartsTexture = sf::Texture(heartsSprites);
     hud = HUD(heartsTexture, player.healthPoints);
     gameMode = MENU;
@@ -344,11 +345,7 @@ void State::hit()
 
 void State::update(float elapsed, sf::View& camera)
 {
-    if (gameMode == MENU)
-    {
-
-    }
-    else
+    if (gameMode != MENU)
     {
         chestCheck();
         if (gameMode == VICTORY)
@@ -498,8 +495,9 @@ void State::update(float elapsed, sf::View& camera)
     }
 }
 
-void State::reset()
+void State::reset(Difficulty difficulty)
 {
+    this->difficulty = difficulty;
     gameMode = PLAYING;
     roomname = room0;
 
@@ -532,7 +530,7 @@ void State::reset()
     {
         animation_frames[i] = 0;
     }
-    player.reset();
+    player.reset(difficulty);
     hud.reset(heartsTexture, player.healthPoints);
 }
 

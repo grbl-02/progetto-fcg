@@ -47,6 +47,7 @@ struct State
     sf::Clock animation_clock;
     bool clockActive;
     int animation_frames[4] = {0, 0, 0, 0};
+    Difficulty difficulty;
 
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
@@ -54,7 +55,7 @@ struct State
     void collisions(bool isX);
     void hit();
     void update(float elapsed, sf::View& camera);
-    void reset();
+    void reset(Difficulty difficulty);
 
     void trigger_gauntlet3();
     void trigger_gauntlet5();

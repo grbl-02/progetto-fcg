@@ -11,6 +11,7 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     this->pos = pos;
     this->name = name;
     this->id = id;
+    healthPoints = 3;
     animation_clock.start();
     aggro_range = {pos, 100.f};
     isJumping = false;
@@ -30,14 +31,12 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
 
 BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id)
         : Enemy(pos, texture, "blueSlime", enemyDir, id) {
-    healthPoints = 3;
 }
 
 RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id)
         : Enemy(pos, texture, "redSlime", enemyDir, id) {
     fireballTexture = sf::Texture(fireballSprites);
     hasShot = false;
-    healthPoints = 5;
 }
 
 void Enemy::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash)

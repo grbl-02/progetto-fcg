@@ -4,6 +4,8 @@
 struct Menu
 {
     sf::Text start_game;
+    sf::Text hard_mode;
+    sf::Text description;
     sf::Text quit;
     int option;
 
