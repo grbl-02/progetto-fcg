@@ -6,11 +6,13 @@
 #include "textbox.hpp"
 #include "dialogueManager.hpp"
 #include "hud.hpp"
+#include "menu.hpp"
 
 struct State
 {
     GameMode gameMode;
     Flags flags;
+    Menu menu;
     Textbox textbox;
     DialogueManager dialogueManager;
     HUD hud;

@@ -26,19 +26,33 @@ void handle_resize(const sf::Event::Resized& resized, sf::RenderWindow& window)
 }
 
 template <typename T>
-void handle(T& event, State& state) {}
+void handle(T& event, State& state, sf::RenderWindow& window) {}
 
-void handle(const sf::Event::KeyPressed& key, State& state)
+void handle(const sf::Event::KeyPressed& key, State& state, sf::RenderWindow& window)
 {
     switch (key.scancode)
     {
         case sf::Keyboard::Scancode::Up:
-            state.move_player_up = true;
-            state.playerMoving = true;
+            if (state.gameMode == MENU)
+            {
+                state.menu.option = (state.menu.option + 1) % 2;
+            }
+            else
+            {
+                state.move_player_up = true;
+                state.playerMoving = true;
+            }
             return;
         case sf::Keyboard::Scancode::Down:
-            state.move_player_down = true;
-            state.playerMoving = true;
+            if (state.gameMode == MENU)
+            {
+                state.menu.option = (state.menu.option + 1) % 2;
+            }
+            else
+            {
+                state.move_player_down = true;
+                state.playerMoving = true;
+            }
             return;
         case sf::Keyboard::Scancode::Left:
             state.move_player_left = true;
@@ -55,8 +69,18 @@ void handle(const sf::Event::KeyPressed& key, State& state)
             state.playerAttacks = true;
             return;
         case sf::Keyboard::Scancode::Z:
-            if (state.interactionIsHappening) state.continueDialogue = true;
-            if (state.gameMode != VICTORY) state.playerInteracting = true;
+            if (state.gameMode == MENU)
+            {
+                if (state.menu.option == 0)
+                    state.gameMode = PLAYING;
+                else
+                    window.close();
+            }
+            else
+            {
+                if (state.interactionIsHappening) state.continueDialogue = true;
+                if (state.gameMode != VICTORY) state.playerInteracting = true;
+            }
             return;
         case sf::Keyboard::Scancode::Enter:
             if (state.gameMode == GAME_OVER || state.gameMode == VICTORY)
@@ -67,7 +91,7 @@ void handle(const sf::Event::KeyPressed& key, State& state)
     }
 }
 
-void handle(const sf::Event::KeyReleased& key, State& state)
+void handle(const sf::Event::KeyReleased& key, State& state, sf::RenderWindow& window)
 {
     switch (key.scancode)
     {
@@ -148,7 +172,7 @@ int main()
         window.handleEvents(
             [&window](const sf::Event::Closed&) { handle_close(window); },
             [&window](const sf::Event::Resized& event) { handle_resize(event, window); },
-            [&state](const auto& event) { handle(event, state); } 
+            [&state, &window](const auto& event) { handle(event, state, window); } 
         );
 
         // update

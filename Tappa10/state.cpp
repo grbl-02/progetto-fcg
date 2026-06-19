@@ -2,11 +2,11 @@
 
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
     : room(room0, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8),
-      victoryText(font, "YOU WON!", 32), textbox(font), hud(heartsTexture, player.healthPoints)
+      victoryText(font, "YOU WON!", 32), textbox(font), hud(heartsTexture, player.healthPoints), menu(font)
 {
     heartsTexture = sf::Texture(heartsSprites);
     hud = HUD(heartsTexture, player.healthPoints);
-    gameMode = PLAYING;
+    gameMode = MENU;
     roomname = room0;
     move_player_up = false;
     move_player_down = false;
@@ -49,44 +49,51 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
 
 void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash)
 {
-    room.draw(window, hitboxes, flash);
-    player.draw(window, hitboxes, redflash);
-    textbox.draw(window);
+    if (gameMode == MENU)
+    {
+        menu.draw(window);
+    }
+    else
+    {
+        room.draw(window, hitboxes, flash);
+        player.draw(window, hitboxes, redflash);
+        textbox.draw(window);
 
-    if (start_animations)
-    {
-        for (auto& sprite : spawningSmokeSprites)
+        if (start_animations)
         {
-            window.draw(sprite);
+            for (auto& sprite : spawningSmokeSprites)
+            {
+                window.draw(sprite);
+            }
         }
-    }
-    hud.draw(window);
+        hud.draw(window);
 
-    if (hitboxes && 
-        (roomname == "Risorse/maps-09/room0.json"
-        || roomname == "Risorse/maps-09/room1.json"
-        || roomname == "Risorse/maps-09/room2.json"
-        || roomname == "Risorse/maps-09/room4.json"))
-    {
-        for (auto& hb : room.door_hitboxes)
+        if (hitboxes && 
+            (roomname == "Risorse/maps-09/room0.json"
+            || roomname == "Risorse/maps-09/room1.json"
+            || roomname == "Risorse/maps-09/room2.json"
+            || roomname == "Risorse/maps-09/room4.json"))
         {
-            sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
-            hitbox.setPosition(hb.position);
-            hitbox.setOutlineColor(sf::Color::White);
-            hitbox.setOutlineThickness(1.f);
-            hitbox.setFillColor(sf::Color::Transparent);
-            window.draw(hitbox);
+            for (auto& hb : room.door_hitboxes)
+            {
+                sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
+                hitbox.setPosition(hb.position);
+                hitbox.setOutlineColor(sf::Color::White);
+                hitbox.setOutlineThickness(1.f);
+                hitbox.setFillColor(sf::Color::Transparent);
+                window.draw(hitbox);
+            }
         }
-    }
-    if (gameMode == GAME_OVER)
-    {
-        window.draw(gameOverText);
-        window.draw(restartText);
-    }
-    if (gameMode == VICTORY)
-    {
-        window.draw(victoryText);
-        window.draw(restartText);
+        if (gameMode == GAME_OVER)
+        {
+            window.draw(gameOverText);
+            window.draw(restartText);
+        }
+        if (gameMode == VICTORY)
+        {
+            window.draw(victoryText);
+            window.draw(restartText);
+        }
     }
 }
 
@@ -337,151 +344,158 @@ void State::hit()
 
 void State::update(float elapsed, sf::View& camera)
 {
-    chestCheck();
-    if (gameMode == VICTORY)
+    if (gameMode == MENU)
     {
-        player.animation(2, idleFrameTime);
+
     }
-    else if (player.dead)
+    else
     {
-        player.animation(9, idleFrameTime);
-        if (player.deathAnimationEnded)
+        chestCheck();
+        if (gameMode == VICTORY)
         {
-            gameMode = GAME_OVER;
+            player.animation(2, idleFrameTime);
         }
-    }
-    else if (!playerInteracting)
-    {
-        if (playerAttacks)
+        else if (player.dead)
         {
-            player.attack(elapsed);
-            if (!player.isAttacking)
+            player.animation(9, idleFrameTime);
+            if (player.deathAnimationEnded)
             {
-                playerAttacks = false;
+                gameMode = GAME_OVER;
+            }
+        }
+        else if (!playerInteracting)
+        {
+            if (playerAttacks)
+            {
+                player.attack(elapsed);
+                if (!player.isAttacking)
+                {
+                    playerAttacks = false;
+                }
+            }
+            else
+            {
+                if (move_player_left)
+                    player.move_left(elapsed);
+                if (move_player_right)
+                    player.move_right(elapsed);
+                collisions(true);
+
+                if (move_player_up)
+                    player.move_up(elapsed);
+                if (move_player_down)
+                    player.move_down(elapsed);
+                collisions(false);
+
+                if (!playerMoving)
+                {
+                    int row = 0;
+                    switch (lastPressed)
+                    {
+                        case UP: row = 2; break;
+                        case DOWN: row = 0; break;
+                        case LEFT: row = 1; break;
+                        case RIGHT: row = 1; break;
+                    }
+                    player.animation(row, idleFrameTime);
+                }
+            }
+        }
+        else if (continueDialogue)
+        {
+            textbox.showNextLine();
+            // gestione screenshake
+            if (textbox.text.getString() == "..." && !shakeDone) 
+            {
+                screenShakeDuration = 0.3f;
+                shakeDone = true;
+            }
+            else if (textbox.text.getString() != "...") 
+            {
+                shakeDone = false; 
+            }
+            continueDialogue = false;
+            if (!textbox.isActive)
+            {
+                playerInteracting = false;
+                interactionIsHappening = false;
+                if (flags.chest_6_opened) gameMode = VICTORY;
+            }
+        }
+        if (screenShakeDuration > 0.f) 
+        {
+            screenShakeDuration -= elapsed;
+
+            if (screenShakeDuration <= 0.f) 
+            {
+                camera.setCenter(center);
+                screenShakeDuration = 0.f; 
+            } 
+            else 
+            {
+                float offsetX = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
+                float offsetY = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
+                camera.setCenter(center + sf::Vector2f(offsetX, offsetY));
             }
         }
         else
-        {
-            if (move_player_left)
-                player.move_left(elapsed);
-            if (move_player_right)
-                player.move_right(elapsed);
-            collisions(true);
-
-            if (move_player_up)
-                player.move_up(elapsed);
-            if (move_player_down)
-                player.move_down(elapsed);
-            collisions(false);
-
-            if (!playerMoving)
-            {
-                int row = 0;
-                switch (lastPressed)
-                {
-                    case UP: row = 2; break;
-                    case DOWN: row = 0; break;
-                    case LEFT: row = 1; break;
-                    case RIGHT: row = 1; break;
-                }
-                player.animation(row, idleFrameTime);
-            }
-        }
-    }
-    else if (continueDialogue)
-    {
-        textbox.showNextLine();
-        // gestione screenshake
-        if (textbox.text.getString() == "..." && !shakeDone) 
-        {
-            screenShakeDuration = 0.3f;
-            shakeDone = true;
-        }
-        else if (textbox.text.getString() != "...") 
-        {
-            shakeDone = false; 
-        }
-        continueDialogue = false;
-        if (!textbox.isActive)
-        {
-            playerInteracting = false;
-            interactionIsHappening = false;
-            if (flags.chest_6_opened) gameMode = VICTORY;
-        }
-    }
-    if (screenShakeDuration > 0.f) 
-    {
-        screenShakeDuration -= elapsed;
-
-        if (screenShakeDuration <= 0.f) 
-        {
             camera.setCenter(center);
-            screenShakeDuration = 0.f; 
-        } 
-        else 
+        for (auto& enemy : room.enemies)
         {
-            float offsetX = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
-            float offsetY = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
-            camera.setCenter(center + sf::Vector2f(offsetX, offsetY));
-        }
-    }
-    else
-        camera.setCenter(center);
-    for (auto& enemy : room.enemies)
-    {
-        if (enemy->isDead)
-        {
-            enemy->animation(12, idleFrameTime);
+            if (enemy->isDead)
+            {
+                enemy->animation(12, idleFrameTime);
+                if (enemy->name == "redSlime")
+                {
+                    RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
+                    for (auto& fireball : redSlime->fireballs)
+                    {
+                        fireball.animation(idleFrameTime);
+                    }
+                }
+                continue;
+            }
+            enemy->enemy_logic(player, elapsed);
             if (enemy->name == "redSlime")
             {
                 RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
                 for (auto& fireball : redSlime->fireballs)
                 {
-                    fireball.animation(idleFrameTime);
+                    fireball.goTowardsPlayer(elapsed);
                 }
+                redSlime->deleteFire();
             }
-            continue;
         }
-        enemy->enemy_logic(player, elapsed);
-        if (enemy->name == "redSlime")
+
+        hit();
+        hud.update();
+        if (player.isInvincible)
+            player.invincibilityTime();
+        room.enemyDeathCleanUp();
+        room.enemyCollisions();
+        room.enemyWallCollisions();
+        room_transition();
+
+        trigger_gauntlet3();
+        clear_gauntlet3();
+        trigger_gauntlet5();
+        clear_gauntlet5();
+        trigger_gauntlet6();
+        clear_gauntlet6();
+
+        spawnAnimation();
+        room.spikesAnimation();
+        room.spikesDisappearingAnimation();
+        if (room.animationEnded)
         {
-            RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
-            for (auto& fireball : redSlime->fireballs)
-            {
-                fireball.goTowardsPlayer(elapsed);
-            }
-            redSlime->deleteFire();
+            room.unload();
+            room.load(room.name);
         }
+        int value = room.chestFalling(elapsed);
+        if (value == 0) flags.chest_3_fell = true;
+        if (value == 1) flags.chest_5_fell = true;
+        if (value == 2) flags.chest_6_fell = true;
     }
-
-    hit();
-    hud.update();
-    if (player.isInvincible)
-        player.invincibilityTime();
-    room.enemyDeathCleanUp();
-    room.enemyCollisions();
-    room.enemyWallCollisions();
-    room_transition();
-
-    trigger_gauntlet3();
-    clear_gauntlet3();
-    trigger_gauntlet5();
-    clear_gauntlet5();
-    trigger_gauntlet6();
-    clear_gauntlet6();
-
-    spawnAnimation();
-    room.spikesAnimation();
-    room.spikesDisappearingAnimation();
-    if (room.animationEnded)
-    {
-        room.unload();
-        room.load(room.name);
-    }
-    int value = room.chestFalling(elapsed);
-    if (value == 0) flags.chest_3_fell = true;
-    if (value == 1) flags.chest_5_fell = true;
-    if (value == 2) flags.chest_6_fell = true;
 }
 
 void State::reset()

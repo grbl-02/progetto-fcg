@@ -55,7 +55,7 @@ inline const float flash_duration = 0.1f;
 inline const char* heartsSprites = "Risorse/basic_caves_and_dungeons/assets/HealthUI.png";
 
 enum dir { UP, DOWN, LEFT, RIGHT };
-enum GameMode { PLAYING, GAME_OVER, VICTORY };
+enum GameMode { MENU, PLAYING, GAME_OVER, VICTORY };
 
 struct FloatCircle {
     sf::Vector2f center;

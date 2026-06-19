@@ -61,6 +61,6 @@ add_executable(Tappa09 Tappa09/conditionEvaluator.cpp Tappa09/dialogueManager.cp
 target_link_libraries(Tappa09 PRIVATE SFML::Graphics)
 target_link_libraries(Tappa09 PRIVATE nlohmann_json::nlohmann_json)
 
-add_executable(Tappa10 Tappa10/conditionEvaluator.cpp Tappa10/dialogueManager.cpp Tappa10/enemies.cpp Tappa10/environment.cpp Tappa10/hud.cpp Tappa10/player.cpp Tappa10/projectiles.cpp Tappa10/room.cpp Tappa10/state.cpp Tappa10/tappa10-main.cpp Tappa10/textbox.cpp)
+add_executable(Tappa10 Tappa10/conditionEvaluator.cpp Tappa10/dialogueManager.cpp Tappa10/enemies.cpp Tappa10/environment.cpp Tappa10/hud.cpp Tappa10/menu.cpp Tappa10/player.cpp Tappa10/projectiles.cpp Tappa10/room.cpp Tappa10/state.cpp Tappa10/tappa10-main.cpp Tappa10/textbox.cpp)
 target_link_libraries(Tappa10 PRIVATE SFML::Graphics)
 target_link_libraries(Tappa10 PRIVATE nlohmann_json::nlohmann_json)
