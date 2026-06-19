@@ -13,6 +13,7 @@ struct Room
     sf::Texture blueSlimeTexture;
     sf::Texture redSlimeTexture;
     sf::Texture spikesTexture;
+    sf::Texture grassTexture;
     std::vector<Tile> tiles;
     std::vector<Asset> assets;
     std::vector<std::unique_ptr<Enemy>> enemies;

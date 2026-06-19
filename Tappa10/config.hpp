@@ -32,8 +32,9 @@ inline bool shakeDone = false;
 inline const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.png";
 inline const sf::Vector2f displacement = {0.0, 0.0};
 inline const sf::Vector2i floor_tile_num = {12, 9};
-inline std::string room1 = "Risorse/maps-09/room1.json";
+inline std::string room0 = "Risorse/maps-09/room0.json";
 inline const float fireball_speed = 60.f;
+inline const char* grass_tiles = "Risorse/basic_caves_and_dungeons/tiles/Basic_Tiles.png";
 
 // oggetti
 inline const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";

@@ -25,6 +25,11 @@
             "pos" : [12, 5],
             "size" : [1, 1],
             "room" : "Risorse/maps-09/room4.json"
+        },
+        "down" : {
+            "pos" : [5, 9],
+            "size" : [2, 1],
+            "room" : "Risorse/maps-09/room0.json"
         }
     },
     "assets" : {

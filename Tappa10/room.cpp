@@ -13,6 +13,7 @@ Room::Room(std::string& filename, Flags& flags) : conditionEvaluator(flags)
     blueSlimeTexture = sf::Texture(blueSlime);
     redSlimeTexture = sf::Texture(redSlime);
     spikesTexture = sf::Texture(spikes);
+    grassTexture = sf::Texture(grass_tiles);
     this->flags = &flags;
     conditionEvaluator = ConditionEvaluator(flags);
     door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
@@ -123,6 +124,12 @@ sf::IntRect Room::stringToIntRect(std::string tileID)
         return sf::IntRect({13*32, 8*32}, {32, 32});
     else if (tileID == "FLOORDECOR4")
         return sf::IntRect({11*32, 9*32}, {32, 32});
+    else if (tileID == "GRASS")
+        return sf::IntRect({32, 0}, {32, 32});
+    else if (tileID == "GRASS1")
+        return sf::IntRect({144, 32}, {32, 32});
+    else if (tileID == "GRASSUP")
+        return sf::IntRect({0, 0}, {32, 32});
     else// if (tileID == "FLOOR")
         return sf::IntRect({8*32, 1*32}, {32, 32});
 }
@@ -221,8 +228,18 @@ void Room::load(std::string& new_room)
                 sf::IntRect floorRect = stringToIntRect("FLOOR");
                 tiles.push_back(Tile(tile_pos, roomTexture, floorRect, "BACKGROUND"));
             }
-
-            tiles.push_back(Tile(tile_pos, roomTexture, textureRect, tileID));
+            else if (tileID == "GRASS1")
+            {
+                sf::IntRect floorRect = sf::IntRect({32, 0}, {32, 32});
+                tiles.push_back(Tile(tile_pos, grassTexture, floorRect, "GRASS"));
+            }
+            else if (tileID == "GRASSUP")
+            {
+                sf::IntRect floorRect = stringToIntRect("FLOOR");
+                tiles.push_back(Tile(tile_pos, roomTexture, floorRect, "BACKGROUND"));   
+            }
+            if (tileID == "GRASS" || tileID == "GRASS1" || tileID == "GRASSUP") tiles.push_back(Tile(tile_pos, grassTexture, textureRect, tileID));
+            else tiles.push_back(Tile(tile_pos, roomTexture, textureRect, tileID));
         }
     }
 
@@ -460,7 +477,8 @@ void Room::enemyCollisions()
                 enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
             }
         }
-        if (name == "Risorse/maps-09/room1.json"
+        if (name == "Risorse/maps-09/room0.json"
+            || name == "Risorse/maps-09/room1.json"
             || name == "Risorse/maps-09/room2.json"
             || name == "Risorse/maps-09/room4.json")
         {

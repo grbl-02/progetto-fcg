@@ -1,13 +1,13 @@
 #include "state.hpp"
 
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
-    : room(room1, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8),
+    : room(room0, flags), gameOverText(font, "GAME OVER", 32), restartText(font, "Press ENTER to restart.", 8),
       victoryText(font, "YOU WON!", 32), textbox(font), hud(heartsTexture, player.healthPoints)
 {
     heartsTexture = sf::Texture(heartsSprites);
     hud = HUD(heartsTexture, player.healthPoints);
     gameMode = PLAYING;
-    roomname = room1;
+    roomname = room0;
     move_player_up = false;
     move_player_down = false;
     move_player_left = false;
@@ -63,7 +63,8 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
     hud.draw(window);
 
     if (hitboxes && 
-        (roomname == "Risorse/maps-09/room1.json"
+        (roomname == "Risorse/maps-09/room0.json"
+        || roomname == "Risorse/maps-09/room1.json"
         || roomname == "Risorse/maps-09/room2.json"
         || roomname == "Risorse/maps-09/room4.json"))
     {
@@ -233,7 +234,8 @@ void State::collisions(bool isX)
             player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
         }
     }
-    if (roomname == "Risorse/maps-09/room1.json"
+    if (roomname == "Risorse/maps-09/room0.json"
+        || roomname == "Risorse/maps-09/room1.json"
         || roomname == "Risorse/maps-09/room2.json"
         || roomname == "Risorse/maps-09/room4.json")
     {
@@ -245,6 +247,22 @@ void State::collisions(bool isX)
                 player.pos.y += intersecRect.size.y;
                 player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
             }
+        }
+    }
+    if (roomname == "Risorse/maps-09/room0.json")
+    {
+        if (player.hitbox.position.x < 0.f)
+        {
+            player.hitbox.position.x = 0;
+            player.pos.x = player.hitbox.position.x + 5.f;
+        }
+        if (player.hitbox.position.x + player.hitbox.size.x > window_width / 3.f) {
+            player.hitbox.position.x = window_width / 3.f - player.hitbox.size.x;
+            player.pos.x = player.hitbox.position.x + 5.f;
+        }
+        if (player.hitbox.position.y + player.hitbox.size.y > window_height / 3.f) {
+            player.hitbox.position.y = window_height / 3.f - player.hitbox.size.y;
+            player.pos.y = player.hitbox.position.y - 15.f;
         }
     }
 }
@@ -469,7 +487,7 @@ void State::update(float elapsed, sf::View& camera)
 void State::reset()
 {
     gameMode = PLAYING;
-    roomname = room1;
+    roomname = room0;
 
     flags = {false, false, false,
              false, false, false,

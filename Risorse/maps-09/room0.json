@@ -1,0 +1,20 @@
+{
+    "grid" : [
+        "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS", "UPCWALLTRANS",
+        "WALL1", "WALL1", "WALL1", "WALL1", "WALL1", "DOOR1", "DOOR2", "WALL1", "WALL1", "WALL1", "WALL1", "WALL1",
+        "WALL2", "WALL2", "WALL2", "WALL2", "WALL2", "DOOR3", "DOOR4", "WALL2", "WALL2", "WALL2", "WALL2", "WALL2",
+        "FLOOR", "FLOOR", "FLOORDECOR4", "FLOOR", "FLOOR", "FLOOR", "FLOORDECOR3", "FLOOR", "FLOOR", "FLOORDECOR2", "FLOOR", "FLOOR",
+        "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP", "GRASSUP",
+        "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS1", "GRASS", "GRASS",
+        "GRASS", "GRASS1", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS",
+        "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS",
+        "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS", "GRASS1", "GRASS", "GRASS", "GRASS", "GRASS"
+    ],
+    "exits" : {
+        "up" : {
+            "pos" : [5, 3],
+            "size" : [2, 1],
+            "room" : "Risorse/maps-09/room1.json"
+        }
+    }
+}
