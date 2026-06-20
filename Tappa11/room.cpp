@@ -374,6 +374,7 @@ void Room::enemyCollisions() {
                     enemy->isJumping = false;
                     enemy->cooldownTimer = 0.f; 
                     enemy->animation_frame = 0;
+                    enemy->hurtbox_offset = {0.f, 0.f};
                 }
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
                 enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
@@ -407,6 +408,7 @@ void Room::enemyCollisions() {
                 enemy->isJumping = false;
                 enemy->cooldownTimer = 0.f; 
                 enemy->animation_frame = 0;
+                enemy->hurtbox_offset = {0.f, 0.f};
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
                 enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
             }
@@ -422,6 +424,7 @@ void Room::enemyCollisions() {
                     enemy->isJumping = false;
                     enemy->cooldownTimer = 0.f; 
                     enemy->animation_frame = 0;
+                    enemy->hurtbox_offset = {0.f, 0.f};
                     enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
                     enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
                 }
