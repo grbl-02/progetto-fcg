@@ -3,7 +3,20 @@
 SoundManager::SoundManager() :
     sword_sound(sword), hurt_sound(hurt), chest_open_sound(chest_open),
     kill_sound(kill), rumble_sound(rumble), enemy_spawn_sound(enemy_spawn),
-    spit_fire_sound(spit_fire), jump_sound(jump), scroll_sound(scroll), select_sound(select) {}
+    spit_fire_sound(spit_fire), jump_sound(jump), scroll_sound(scroll), select_sound(select) {
+
+    if (!dungeon_music.openFromFile(dungeon)) {
+        std::cerr << "Error: Could not load music file at " << dungeon << std::endl;
+        return;
+    }
+    dungeon_music.setLooping(true);
+
+    if (!victory_music.openFromFile(victory)) {
+        std::cerr << "Error: Could not load music file at " << victory << std::endl;
+        return;
+    }
+    victory_music.setLooping(true);
+}
 
 void SoundManager::playSword() {
     if (play_sword) {
@@ -73,4 +86,26 @@ void SoundManager::playSelect() {
         select_sound.play();
         play_select = false;
     }
+}
+
+void SoundManager::playDungeon() {
+    if (play_dungeon) {
+        dungeon_music.play();
+        play_dungeon = false;
+    }
+}
+
+void SoundManager::stopDungeon() {
+    dungeon_music.stop();
+}
+
+void SoundManager::playVictory() {
+    if (play_victory) {
+        victory_music.play();
+        play_victory = false;
+    }
+}
+
+void SoundManager::stopVictory() {
+    victory_music.stop();
 }

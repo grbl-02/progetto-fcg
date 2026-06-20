@@ -75,12 +75,18 @@ void handle(const sf::Event::KeyPressed& key, State& state, sf::RenderWindow& wi
             }
             return;
         case sf::Keyboard::Scancode::Enter:
-            if (state.gameMode == GAME_OVER || state.gameMode == VICTORY)
+            if (state.gameMode == GAME_OVER || state.gameMode == VICTORY) {
+                state.soundManager.stopDungeon();
+                state.soundManager.stopVictory();
                 state.reset(state.difficulty);
+            }
             return;
         case sf::Keyboard::Scancode::Escape:
-            if (state.gameMode == GAME_OVER || state.gameMode == VICTORY)
+            if (state.gameMode == GAME_OVER || state.gameMode == VICTORY) {
+                state.soundManager.stopDungeon();
+                state.soundManager.stopVictory();
                 state.gameMode = MENU;
+            }
             return;
         default:
             return;

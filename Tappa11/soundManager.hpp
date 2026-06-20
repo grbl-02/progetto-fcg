@@ -12,6 +12,8 @@ struct SoundManager {
     sf::SoundBuffer jump = sf::SoundBuffer("Risorse/sound_effects/snd_board_throw.wav");
     sf::SoundBuffer scroll = sf::SoundBuffer("Risorse/sound_effects/snd_board_text_main.wav");
     sf::SoundBuffer select = sf::SoundBuffer("Risorse/sound_effects/snd_board_text_main_end.wav");
+    std::filesystem::path dungeon = "Risorse/sound_effects/board_sword_music.ogg";
+    std::filesystem::path victory = "Risorse/sound_effects/tv_hall_of_fame.ogg";
 
     sf::Sound sword_sound;
     sf::Sound hurt_sound;
@@ -23,6 +25,8 @@ struct SoundManager {
     sf::Sound jump_sound;
     sf::Sound scroll_sound;
     sf::Sound select_sound;
+    sf::Music dungeon_music;
+    sf::Music victory_music;
 
     bool play_sword = false;
     bool play_hurt = false;
@@ -34,6 +38,8 @@ struct SoundManager {
     bool play_jump = false;
     bool play_scroll = false;
     bool play_select = false;
+    bool play_dungeon = false;
+    bool play_victory = false;
 
     SoundManager();
     void playSword();
@@ -46,4 +52,8 @@ struct SoundManager {
     void playJump();
     void playScroll();
     void playSelect();
+    void playDungeon();
+    void stopDungeon();
+    void playVictory();
+    void stopVictory();
 };

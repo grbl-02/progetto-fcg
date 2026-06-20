@@ -49,6 +49,8 @@ struct State {
     bool clockActive;
     int animation_frames[4] = {0, 0, 0, 0};
     Difficulty difficulty;
+    bool play_the_victory_music = false;
+    bool music_played = false;
 
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);

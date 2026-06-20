@@ -126,6 +126,8 @@ void State::room_transition() {
         float hb2x = player.hitbox.position.x + player.hitbox.size.x;
         float ex2x = room.up_exit.position.x + room.up_exit.size.x + 10.f;
         if (hb1x > ex1x && hb1y < ex1y && hb2x < ex2x) {
+            if (room.name == "Risorse/maps-09/room0.json")
+                soundManager.play_dungeon = true;
             room.unload();
             roomname = room.room_up;
             room.load(room.room_up);
@@ -140,6 +142,8 @@ void State::room_transition() {
         float hb2x = player.hitbox.position.x + player.hitbox.size.x;
         float ex2x = room.down_exit.position.x + room.down_exit.size.x + 10.f;
         if (hb1x > ex1x && hb1y > ex1y && hb2x < ex2x) {
+            if (room.name == "Risorse/maps-09/room1.json")
+                soundManager.stopDungeon();
             room.unload();
             roomname = room.room_down;
             room.load(room.room_down);
@@ -284,6 +288,13 @@ void State::hit() {
 void State::update(float elapsed, sf::View& camera) {
     if (gameMode != MENU) {
         soundManager.playSelect();
+        if (gameMode == VICTORY) {
+            soundManager.stopDungeon();
+            if (play_the_victory_music) {
+                soundManager.play_victory = true;
+                play_the_victory_music = false;
+            }
+        }
         chestCheck();
         soundManager.playChestOpen();
         if (gameMode == VICTORY)
@@ -338,7 +349,11 @@ void State::update(float elapsed, sf::View& camera) {
             {
                 playerInteracting = false;
                 interactionIsHappening = false;
-                if (flags.chest_6_opened) gameMode = VICTORY;
+                if (flags.chest_6_opened && !music_played) {
+                    gameMode = VICTORY;
+                    play_the_victory_music = true;
+                    music_played = true;
+                }
             }
         }
         if (screenShakeDuration > 0.f) {
@@ -382,6 +397,7 @@ void State::update(float elapsed, sf::View& camera) {
                 redSlime->deleteFire();
             }
         }
+        soundManager.playVictory();
         soundManager.playJump();
         soundManager.playSpitFire();
         soundManager.playRumble();
@@ -395,6 +411,7 @@ void State::update(float elapsed, sf::View& camera) {
         room.enemyCollisions();
         room.enemyWallCollisions();
         room_transition();
+        soundManager.playDungeon();
 
         trigger_gauntlet3();
         clear_gauntlet3();
@@ -455,6 +472,8 @@ void State::reset(Difficulty difficulty) {
         animation_frames[i] = 0;
     player.reset(difficulty);
     hud.reset(heartsTexture, player.healthPoints);
+    play_the_victory_music = false;
+    music_played = false;
 }
 
 void State::trigger_gauntlet3() {
