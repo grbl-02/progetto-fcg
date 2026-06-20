@@ -7,7 +7,7 @@ const unsigned window_height = 600;
 const float max_frame_rate = 60;
 
 // giocatore
-const char* player_texture = "Risorse/sprites/characters/player.png";
+const char* player_texture = "Risorse/sprites/player.png";
 
 // camera
 const float zoom_factor = 0.3f;

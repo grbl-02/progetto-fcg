@@ -10,7 +10,7 @@ const unsigned window_height = 864;
 const float max_frame_rate = 60;
 
 // giocatore
-const char* player_texture = "Risorse/sprites/characters/player.png";
+const char* player_texture = "Risorse/sprites/player.png";
 const float player_speed = 120.0;
 
 // animazione
@@ -18,19 +18,19 @@ const float movFrameTime = 0.1;
 const float idleFrameTime = 0.2;
 
 // stanza
-const char* all_tiles = "Risorse/basic_caves_and_dungeons/tiles/tiles-all-32x32.png";
+const char* all_tiles = "Risorse/sprites/tiles-all-32x32.png";
 const sf::Vector2f displacement = {0.0, 0.0};
 const sf::Vector2i floor_tile_num = {12, 9};
 std::string room1 = "Risorse/maps/room1.json";
 const float fireball_speed = 100.0;
 
 // oggetti
-const char* all_assets = "Risorse/basic_caves_and_dungeons/assets/assets-all.png";
+const char* all_assets = "Risorse/sprites/assets-all.png";
 
 // nemici
-const char* blueSlime = "Risorse/sprites/characters/slime.png";
-const char* redSlime = "Risorse/sprites/characters/redslime.png";
-const char* fireballSprites = "Risorse/sprites/characters/fireballs.png";
+const char* blueSlime = "Risorse/sprites/slime.png";
+const char* redSlime = "Risorse/sprites/redslime.png";
+const char* fireballSprites = "Risorse/sprites/fireballs.png";
 const float jumpdist = 64.f;
 const float jumptime = 0.5f;
 const float cooldown = 1.0f;
