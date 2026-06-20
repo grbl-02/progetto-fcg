@@ -25,8 +25,6 @@ void Room::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
         tile.draw(window);
     for (auto& asset : assets)
         asset.draw(window);
-    for (auto& enemy : enemies)
-        enemy->draw(window, hitboxes, flash);
 
     if (hitboxes) {
         sf::Vector2f sizeL = {(float)left_exit.size.x, (float)left_exit.size.y};

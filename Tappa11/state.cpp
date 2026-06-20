@@ -1,5 +1,10 @@
 #include "state.hpp"
 
+struct RenderCommand {
+    float depth;
+    std::function<void()> drawAction;
+};
+
 State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
     : room(room0, flags),
       gameOverText(font, "GAME OVER", 32),
@@ -55,8 +60,26 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
     if (gameMode == MENU)
         menu.draw(window);
     else {
+        std::vector<RenderCommand> render_queue;
+        float player_depth = player.hitbox.position.y;
+        render_queue.push_back({
+            player_depth,
+            [this, &window, &redflash]() { player.draw(window, hitboxes, redflash); }
+        });
+        for (auto& enemy : room.enemies) {
+            float enemyDepth = enemy->hitbox.position.y;
+            render_queue.push_back({
+                enemyDepth,
+                [this, &window, &flash, &enemy]() { enemy->draw(window, hitboxes, flash); }
+            });
+        }
+        std::sort(render_queue.begin(), render_queue.end(), [](const RenderCommand& a, const RenderCommand& b) {
+            return a.depth < b.depth;
+        });
+        
         room.draw(window, hitboxes, flash);
-        player.draw(window, hitboxes, redflash);
+        for (const auto& command : render_queue)
+            command.drawAction();
         textbox.draw(window);
 
         if (start_animations)
@@ -296,6 +319,7 @@ void State::update(float elapsed, sf::View& camera) {
             }
         }
         chestCheck();
+
         soundManager.playChestOpen();
         if (gameMode == VICTORY)
             player.animation(2, idleFrameTime);

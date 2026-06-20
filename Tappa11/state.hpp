@@ -9,6 +9,8 @@
 #include "menu.hpp"
 #include "soundManager.hpp"
 
+struct RenderCommand;
+
 struct State {
     GameMode gameMode;
     Flags flags;
