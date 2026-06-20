@@ -57,7 +57,7 @@ struct State {
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
     void room_transition();
-    void collisions(bool isX);
+    void processMovement(sf::Vector2f velocity, float elapsed);
     void hit();
     void update(float elapsed, sf::View& camera);
     void reset(Difficulty difficulty);

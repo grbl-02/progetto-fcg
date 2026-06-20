@@ -32,10 +32,6 @@ struct Player {
     Player();
     void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& redflash);
     void animation(int row, float frameTime);
-    void move_up(float elapsed);
-    void move_down(float elapsed);
-    void move_left(float elapsed);
-    void move_right(float elapsed);
     void attack(float elapsed);
     void slash();
     void unslash();

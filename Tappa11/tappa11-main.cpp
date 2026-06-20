@@ -127,9 +127,9 @@ void handle(const sf::Event::KeyReleased& key, State& state, sf::RenderWindow& w
 int main() {
     sf::Vector2u window_size({window_width, window_height});
     sf::RenderWindow window(sf::VideoMode(window_size), window_title);
+
     window.setFramerateLimit(max_frame_rate);
     window.setMinimumSize(window.getSize());
-
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
     sf::Vector2i centerPosition(
         (int)((desktop.size.x - window_size.x) / 2),

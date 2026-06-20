@@ -342,6 +342,9 @@ void Room::load(std::string& new_room) {
 }
 
 void Room::enemyCollisions() {
+
+    const float epsilon = 0.02f;
+
     for (auto& enemy : enemies) {
         for (auto& tile : tiles) {
             if (tile.name.find("WALL") != std::string::npos
@@ -355,20 +358,20 @@ void Room::enemyCollisions() {
                     if (intersecRect.size.x < intersecRect.size.y) {
                         // going to the right
                         if (enemyCenter.x < tileCenter.x) {
-                            enemy->pos.x -= intersecRect.size.x;
+                            enemy->pos.x -= (intersecRect.size.x + epsilon);
                         }
                         // going to the left
                         else {
-                            enemy->pos.x += intersecRect.size.x;
+                            enemy->pos.x += (intersecRect.size.x + epsilon);
                         }
                     } else {
                         // going down
                         if (enemyCenter.y < tileCenter.y) {
-                            enemy->pos.y -= intersecRect.size.y;
+                            enemy->pos.y -= (intersecRect.size.y + epsilon);
                         }
                         // going up
                         else {
-                            enemy->pos.y += intersecRect.size.y;
+                            enemy->pos.y += (intersecRect.size.y + epsilon);
                         }
                     }
                     enemy->isJumping = false;
@@ -389,20 +392,20 @@ void Room::enemyCollisions() {
                 if (intersecRect.size.x < intersecRect.size.y) {
                     // going to the right
                     if (enemyCenter.x < assetCenter.x) {
-                        enemy->pos.x -= intersecRect.size.x;
+                        enemy->pos.x -= (intersecRect.size.x + epsilon);
                     }
                     // going to the left
                     else {
-                        enemy->pos.x += intersecRect.size.x;
+                        enemy->pos.x += (intersecRect.size.x + epsilon);
                     }
                 } else {
                     // going down
                     if (enemyCenter.y < assetCenter.y) {
-                        enemy->pos.y -= intersecRect.size.y;
+                        enemy->pos.y -= (intersecRect.size.y + epsilon);
                     }
                     // going up
                     else {
-                        enemy->pos.y += intersecRect.size.y;
+                        enemy->pos.y += (intersecRect.size.y + epsilon);
                     }
                 }
                 enemy->isJumping = false;
@@ -420,7 +423,7 @@ void Room::enemyCollisions() {
             for (auto& door_hitbox : door_hitboxes) {
                 if (auto intersecOp = enemy->hitbox.findIntersection(door_hitbox)) {
                     sf::FloatRect intersecRect = *intersecOp;
-                    enemy->pos.y += intersecRect.size.y;
+                    enemy->pos.y += (intersecRect.size.y + epsilon);
                     enemy->isJumping = false;
                     enemy->cooldownTimer = 0.f; 
                     enemy->animation_frame = 0;

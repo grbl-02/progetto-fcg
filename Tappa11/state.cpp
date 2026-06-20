@@ -175,7 +175,10 @@ void State::room_transition() {
     }
 }
 
-void State::collisions(bool isX) {
+void State::processMovement(sf::Vector2f velocity, float elapsed) {
+    player.pos.x += velocity.x * elapsed;
+    player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
+
     for (auto& tile : room.tiles) {
         if (tile.name.find("WALL") != std::string::npos
             || tile.name.find("LEFTDOOR") != std::string::npos
@@ -183,22 +186,9 @@ void State::collisions(bool isX) {
             sf::FloatRect tileBounds = tile.sprite.getGlobalBounds();
 
             if (auto intersecOp = player.hitbox.findIntersection(tileBounds)) {
-                sf::FloatRect intersecRect = *intersecOp;
-                sf::Vector2f playerCenter = player.hitbox.getCenter();
-                sf::Vector2f tileCenter = tileBounds.getCenter();
-                if (isX) {
-                    // going to the right
-                    if (playerCenter.x < tileCenter.x)
-                        player.pos.x -= intersecRect.size.x;
-                    // going to the left
-                    else player.pos.x += intersecRect.size.x;
-                } else {
-                    // going down
-                    if (playerCenter.y < tileCenter.y)
-                        player.pos.y -= intersecRect.size.y;
-                    // going up
-                    else player.pos.y += intersecRect.size.y;
-                }
+                if (velocity.x > 0.f) player.pos.x -= intersecOp->size.x;
+                if (velocity.x < 0.f) player.pos.x += intersecOp->size.x;
+                velocity.x = 0.f;
                 player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
             }
         }
@@ -207,22 +197,49 @@ void State::collisions(bool isX) {
         sf::FloatRect assetBounds = asset.sprite.getGlobalBounds();
 
         if (auto intersecOp = player.hitbox.findIntersection(assetBounds)) {
-            sf::FloatRect intersecRect = *intersecOp;
-            sf::Vector2f playerCenter = player.hitbox.getCenter();
-            sf::Vector2f assetCenter = assetBounds.getCenter();
-            if (isX) {
-                // going to the right
-                if (playerCenter.x < assetCenter.x)
-                    player.pos.x -= intersecRect.size.x;
-                // going to the left
-                else player.pos.x += intersecRect.size.x;
-            } else {
-                // going down
-                if (playerCenter.y < assetCenter.y)
-                    player.pos.y -= intersecRect.size.y;
-                // going up
-                else player.pos.y += intersecRect.size.y;
+            if (velocity.x > 0.f) player.pos.x -= intersecOp->size.x;
+            if (velocity.x < 0.f) player.pos.x += intersecOp->size.x;
+            velocity.x = 0.f;
+            player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
+        }
+    }
+    if (roomname == "Risorse/maps-09/room0.json") {
+        if (player.hitbox.position.x < 0.f) {
+            if (velocity.x < 0.f) player.hitbox.position.x = 0;
+            velocity.x = 0.f;
+            player.pos.x = player.hitbox.position.x + 5.f;
+        }
+        if (player.hitbox.position.x + player.hitbox.size.x > window_width / 3.f) {
+            if (velocity.x > 0.f) player.hitbox.position.x = window_width / 3.f - player.hitbox.size.x;
+            velocity.x = 0.f;
+            player.pos.x = player.hitbox.position.x + 5.f;
+        }
+    }
+
+    player.pos.y += velocity.y * elapsed;
+    player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
+
+    for (auto& tile : room.tiles) {
+        if (tile.name.find("WALL") != std::string::npos
+            || tile.name.find("LEFTDOOR") != std::string::npos
+            || tile.name.find("RIGHTDOOR") != std::string::npos) {
+            sf::FloatRect tileBounds = tile.sprite.getGlobalBounds();
+
+            if (auto intersecOp = player.hitbox.findIntersection(tileBounds)) {
+                if (velocity.y > 0.f) player.pos.y -= intersecOp->size.y;
+                if (velocity.y < 0.f) player.pos.y += intersecOp->size.y;
+                velocity.y = 0.f;
+                player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
             }
+        }
+    }
+    for (auto& asset : room.assets) {
+        sf::FloatRect assetBounds = asset.sprite.getGlobalBounds();
+
+        if (auto intersecOp = player.hitbox.findIntersection(assetBounds)) {
+            if (velocity.y > 0.f) player.pos.y -= intersecOp->size.y;
+            if (velocity.y < 0.f) player.pos.y += intersecOp->size.y;
+            velocity.y = 0.f;
             player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
         }
     }
@@ -232,24 +249,48 @@ void State::collisions(bool isX) {
         || roomname == "Risorse/maps-09/room4.json") {
         for (auto& door_hitbox : room.door_hitboxes) {
             if (auto intersecOp = player.hitbox.findIntersection(door_hitbox)) {
-                sf::FloatRect intersecRect = *intersecOp;
-                player.pos.y += intersecRect.size.y;
+                if (velocity.y < 0.f) player.pos.y += intersecOp->size.y;
+                velocity.y = 0.f;
                 player.hitbox.position = {player.pos.x - 5.f, player.pos.y + 15.f};
             }
         }
     }
     if (roomname == "Risorse/maps-09/room0.json") {
-        if (player.hitbox.position.x < 0.f) {
-            player.hitbox.position.x = 0;
-            player.pos.x = player.hitbox.position.x + 5.f;
-        }
-        if (player.hitbox.position.x + player.hitbox.size.x > window_width / 3.f) {
-            player.hitbox.position.x = window_width / 3.f - player.hitbox.size.x;
-            player.pos.x = player.hitbox.position.x + 5.f;
-        }
         if (player.hitbox.position.y + player.hitbox.size.y > window_height / 3.f) {
-            player.hitbox.position.y = window_height / 3.f - player.hitbox.size.y;
+            if (velocity.y > 0.f) player.hitbox.position.y = window_height / 3.f - player.hitbox.size.y;
+            velocity.y = 0.f;
             player.pos.y = player.hitbox.position.y - 15.f;
+        }
+    }
+
+    if (velocity.x == 0.f && velocity.y == 0.f)
+        playerMoving = false;
+    else {
+        playerMoving = true;
+
+        if (velocity.x == 0.f && velocity.y != 0.f) {
+            player.direction = (velocity.y < 0.f) ? UP : DOWN;
+            lastPressed = player.direction;
+        } else if (velocity.y == 0.f && velocity.x != 0.f) {
+            player.direction = (velocity.x < 0.f) ? LEFT : RIGHT;
+            lastPressed = player.direction;
+        }
+
+        if (player.direction == LEFT) {
+            player.isLeft = true;
+            player.animation(4, movFrameTime);
+        }
+        else if (player.direction == RIGHT) {
+            player.isLeft = false;
+            player.animation(4, movFrameTime);
+        }
+        else if (player.direction == UP) {
+            player.isLeft = false;
+            player.animation(5, movFrameTime);
+        }
+        else if (player.direction == DOWN) {
+            player.isLeft = false;
+            player.animation(3, movFrameTime);
         }
     }
 }
@@ -336,18 +377,33 @@ void State::update(float elapsed, sf::View& camera) {
                 if (!player.isAttacking)
                     playerAttacks = false;
             } else {
-                if (move_player_left)
-                    player.move_left(elapsed);
-                if (move_player_right)
-                    player.move_right(elapsed);
-                collisions(true);
-
-                if (move_player_up)
-                    player.move_up(elapsed);
-                if (move_player_down)
-                    player.move_down(elapsed);
-                collisions(false);
-
+                sf::Vector2f velocity = sf::Vector2f(0.f, 0.f);
+                if (move_player_left) {
+                    velocity.x -= player_speed;
+                    player.direction = LEFT;
+                    lastPressed = LEFT;
+                }
+                if (move_player_right) {
+                    velocity.x += player_speed;
+                    player.direction = RIGHT;
+                    lastPressed = RIGHT;
+                }
+                if (move_player_up) {
+                    velocity.y -= player_speed;
+                    player.direction = UP;
+                    lastPressed = UP;
+                }
+                if (move_player_down) {
+                    velocity.y += player_speed;
+                    player.direction = DOWN;
+                    lastPressed = DOWN;
+                }
+                if (velocity.x != 0.f || velocity.y != 0.f) {
+                    playerMoving = true;
+                } else {
+                    playerMoving = false;
+                }
+                processMovement(velocity, elapsed);
                 if (!playerMoving) {
                     int row = 0;
                     switch (lastPressed) {
@@ -356,6 +412,7 @@ void State::update(float elapsed, sf::View& camera) {
                         case LEFT: row = 1; break;
                         case RIGHT: row = 1; break;
                     }
+                    if (lastPressed == LEFT) player.isLeft = true;
                     player.animation(row, idleFrameTime);
                 }
             }

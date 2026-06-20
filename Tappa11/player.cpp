@@ -112,38 +112,6 @@ void Player::animation(int row, float frameTime) {
     }
 }
 
-void Player::move_up(float elapsed) {
-    pos.y -= player_speed * elapsed;
-    hitbox.position.y -= player_speed * elapsed;
-    isLeft = false;
-    direction = UP;
-    animation(5, movFrameTime);
-}
-
-void Player::move_down(float elapsed) {
-    pos.y += player_speed * elapsed;
-    hitbox.position.y += player_speed * elapsed;
-    isLeft = false;
-    direction = DOWN;
-    animation(3, movFrameTime);
-}
-
-void Player::move_left(float elapsed) {
-    pos.x -= player_speed * elapsed;
-    hitbox.position.x -= player_speed * elapsed;
-    isLeft = true;
-    direction = LEFT;
-    animation(4, movFrameTime);
-}
-
-void Player::move_right(float elapsed) {
-    pos.x += player_speed * elapsed;
-    hitbox.position.x += player_speed * elapsed;
-    isLeft = false;
-    direction = RIGHT;
-    animation(4, movFrameTime);
-}
-
 void Player::attack(float elapsed) {
     if (!isAttacking) {
         isAttacking = true;
