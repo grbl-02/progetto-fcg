@@ -14,7 +14,7 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
       hud(heartsTexture, player.healthPoints),
       menu(font) {
     difficulty = NORMAL;
-    heartsTexture = sf::Texture(heartsSprites);
+    heartsTexture = sf::Texture(hearts_path);
     hud = HUD(heartsTexture, player.healthPoints);
     gameMode = MENU;
     roomname = room0;
@@ -34,7 +34,7 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
     checkingChest3 = false;
     checkingChest5 = false;
     checkingChest6 = false;
-    spawningSmoke = sf::Texture(spawnSprites);
+    spawningSmoke = sf::Texture(spawn_path);
 
     for (int i = 0; i < 4; i++) {
         sf::Sprite sprite = sf::Sprite(spawningSmoke, sf::IntRect({0, 0}, {32, 32}));
@@ -111,7 +111,7 @@ void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redfla
     }
 }
 
-void State::room_transition() {
+void State::roomTransition() {
     
     if (!std::empty(room.room_left)) {
         float hb1x = player.hitbox.position.x;
@@ -124,7 +124,7 @@ void State::room_transition() {
             room.unload();
             roomname = room.room_left;
             room.load(room.room_left);
-            player.enter_left_pos();
+            player.enterLeftPos();
         }
     }
     if (!std::empty(room.room_right)) {
@@ -138,7 +138,7 @@ void State::room_transition() {
             room.unload();
             roomname = room.room_right;
             room.load(room.room_right);
-            player.enter_right_pos();
+            player.enterRightPos();
         }
     }
     if (!std::empty(room.room_up)) {
@@ -154,7 +154,7 @@ void State::room_transition() {
             room.unload();
             roomname = room.room_up;
             room.load(room.room_up);
-            player.enter_up_pos();
+            player.enterUpPos();
         }
     }
     if (!std::empty(room.room_down)) {
@@ -170,7 +170,7 @@ void State::room_transition() {
             room.unload();
             roomname = room.room_down;
             room.load(room.room_down);
-            player.enter_down_pos();
+            player.enterDownPos();
         }
     }
 }
@@ -278,26 +278,26 @@ void State::processMovement(sf::Vector2f velocity, float elapsed) {
 
         if (player.direction == LEFT) {
             player.isLeft = true;
-            player.animation(4, movFrameTime);
+            player.animation(4, mov_frame_time);
         }
         else if (player.direction == RIGHT) {
             player.isLeft = false;
-            player.animation(4, movFrameTime);
+            player.animation(4, mov_frame_time);
         }
         else if (player.direction == UP) {
             player.isLeft = false;
-            player.animation(5, movFrameTime);
+            player.animation(5, mov_frame_time);
         }
         else if (player.direction == DOWN) {
             player.isLeft = false;
-            player.animation(3, movFrameTime);
+            player.animation(3, mov_frame_time);
         }
     }
 }
 
 void State::hit() {
     for (auto& enemy : room.enemies) {
-        if (enemy->isDead) continue;
+        if (enemy->is_dead) continue;
 
         if (!player.isInvincible && !player.dead) {
             if (player.hitbox.findIntersection(enemy->hitbox)) {
@@ -331,10 +331,10 @@ void State::hit() {
             }
         }
         if (player.slashHit && player.slashHitbox.findIntersection(enemy->hurtbox)) {
-            enemy->healthPoints--;
+            enemy->health_points--;
             player.slashHit = false;
-            if (enemy->healthPoints <= 0) {
-                enemy->isDead = true;
+            if (enemy->health_points <= 0) {
+                enemy->is_dead = true;
                 soundManager.play_kill = true;
                 if (enemy->name == "redSlime") {
                     RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
@@ -343,7 +343,7 @@ void State::hit() {
                 }
             }
             enemy->hurt = true;
-            enemy->flashClock.restart();
+            enemy->flash_clock.restart();
             break;
         }
     }
@@ -363,9 +363,9 @@ void State::update(float elapsed, sf::View& camera) {
 
         soundManager.playChestOpen();
         if (gameMode == VICTORY)
-            player.animation(2, idleFrameTime);
+            player.animation(2, idle_frame_time);
         else if (player.dead) {
-            player.animation(9, idleFrameTime);
+            player.animation(9, idle_frame_time);
             if (player.deathAnimationEnded)
                 gameMode = GAME_OVER;
         }
@@ -413,18 +413,18 @@ void State::update(float elapsed, sf::View& camera) {
                         case RIGHT: row = 1; break;
                     }
                     if (lastPressed == LEFT) player.isLeft = true;
-                    player.animation(row, idleFrameTime);
+                    player.animation(row, idle_frame_time);
                 }
             }
         } else if (continueDialogue) {
             textbox.showNextLine();
             // gestione screenshake
-            if (textbox.text.getString() == "..." && !shakeDone) {
-                screenShakeDuration = 0.3f;
+            if (textbox.text.getString() == "..." && !shake_done) {
+                screen_shake_duration = 0.3f;
                 soundManager.play_rumble = true;
-                shakeDone = true;
+                shake_done = true;
             } else if (textbox.text.getString() != "...") 
-                shakeDone = false; 
+                shake_done = false; 
             continueDialogue = false;
             if (!textbox.isActive)
             {
@@ -437,12 +437,12 @@ void State::update(float elapsed, sf::View& camera) {
                 }
             }
         }
-        if (screenShakeDuration > 0.f) {
-            screenShakeDuration -= elapsed;
+        if (screen_shake_duration > 0.f) {
+            screen_shake_duration -= elapsed;
 
-            if (screenShakeDuration <= 0.f) {
+            if (screen_shake_duration <= 0.f) {
                 camera.setCenter(center);
-                screenShakeDuration = 0.f; 
+                screen_shake_duration = 0.f; 
             } else {
                 float offsetX = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
                 float offsetY = (static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f) * intensity;
@@ -450,16 +450,16 @@ void State::update(float elapsed, sf::View& camera) {
             }
         } else camera.setCenter(center);
         for (auto& enemy : room.enemies) {
-            if (enemy->isDead) {
-                enemy->animation(12, idleFrameTime);
+            if (enemy->is_dead) {
+                enemy->animation(12, idle_frame_time);
                 if (enemy->name == "redSlime") {
                     RedSlime* redSlime = static_cast<RedSlime*>(enemy.get());
                     for (auto& fireball : redSlime->fireballs)
-                        fireball.animation(idleFrameTime);
+                        fireball.animation(idle_frame_time);
                 }
                 continue;
             }
-            enemy->enemy_logic(player, elapsed);
+            enemy->enemyLogic(player, elapsed);
             if (enemy->name == "blueSlime") {
                 BlueSlime* blueSlime = static_cast<BlueSlime*>(enemy.get());
                 if (blueSlime->is_starting_to_jump) {
@@ -491,15 +491,15 @@ void State::update(float elapsed, sf::View& camera) {
         room.enemyDeathCleanUp();
         room.enemyCollisions();
         room.enemyWallCollisions();
-        room_transition();
+        roomTransition();
         soundManager.playDungeon();
 
-        trigger_gauntlet3();
-        clear_gauntlet3();
-        trigger_gauntlet5();
-        clear_gauntlet5();
-        trigger_gauntlet6();
-        clear_gauntlet6();
+        triggerGauntlet3();
+        clearGauntlet3();
+        triggerGauntlet5();
+        clearGauntlet5();
+        triggerGauntlet6();
+        clearGauntlet6();
         soundManager.playEnemySpawn();
 
         spawnAnimation();
@@ -557,7 +557,7 @@ void State::reset(Difficulty difficulty) {
     music_played = false;
 }
 
-void State::trigger_gauntlet3() {
+void State::triggerGauntlet3() {
     if (room.name == "Risorse/maps-09/room3.json" && !flags.room_3_gauntlet_triggered) {
         if (player.hitbox.position.y + player.hitbox.size.y < 256.f) {
             soundManager.play_enemy_spawn = true;
@@ -570,7 +570,7 @@ void State::trigger_gauntlet3() {
     }
 }
 
-void State::trigger_gauntlet5() {
+void State::triggerGauntlet5() {
     if (room.name == "Risorse/maps-09/room5.json" && !flags.room_5_gauntlet_triggered) {
         if (player.hitbox.position.y + player.hitbox.size.y < 256.f) {
             soundManager.play_enemy_spawn = true;
@@ -583,7 +583,7 @@ void State::trigger_gauntlet5() {
     }
 }
 
-void State::trigger_gauntlet6() {
+void State::triggerGauntlet6() {
     if (room.name == "Risorse/maps-09/room6.json" && !flags.room_6_gauntlet_triggered) {
         if (player.hitbox.position.y + player.hitbox.size.y < 256.f) {
             soundManager.play_enemy_spawn = true;
@@ -596,7 +596,7 @@ void State::trigger_gauntlet6() {
     }
 }
 
-void State::clear_gauntlet3() {
+void State::clearGauntlet3() {
     if (room.name == "Risorse/maps-09/room3.json" && flags.room_3_gauntlet_triggered && !flags.room_3_gauntlet_cleared) {
         if (room.enemies.empty()) {
             flags.room_3_gauntlet_cleared = true;
@@ -607,7 +607,7 @@ void State::clear_gauntlet3() {
     }
 }
 
-void State::clear_gauntlet5() {
+void State::clearGauntlet5() {
     if (room.name == "Risorse/maps-09/room5.json" && flags.room_5_gauntlet_triggered && !flags.room_5_gauntlet_cleared) {
         if (room.enemies.empty()) {
             flags.room_5_gauntlet_cleared = true;
@@ -618,7 +618,7 @@ void State::clear_gauntlet5() {
     }
 }
 
-void State::clear_gauntlet6() {
+void State::clearGauntlet6() {
     if (room.name == "Risorse/maps-09/room6.json" && flags.room_6_gauntlet_triggered && !flags.room_6_gauntlet_cleared) {
         if (room.enemies.empty()) {
             flags.room_6_gauntlet_cleared = true;
@@ -679,7 +679,7 @@ void State::interaction(std::string dialogue) {
     while (!textbox.dialogue_queue.empty())
         textbox.dialogue_queue.pop();
 
-    for (const auto& line : dialogueManager.dialogueMap[dialogue])
+    for (const auto& line : dialogueManager.dialogue_map[dialogue])
         textbox.dialogue_queue.push(line);
 
     textbox.showNextLine();
@@ -691,7 +691,7 @@ void State::spawnAnimation() {
             animation_clock.restart();
             clockActive = true;
         }
-        if (animation_clock.getElapsedTime().asSeconds() >= spawnFrameTime) {
+        if (animation_clock.getElapsedTime().asSeconds() >= spawn_frame_time) {
             bool animationEnded  = false;
             for (int i = 0; i < spawningSmokeSprites.size(); i++) {
                 animation_frames[i]++;

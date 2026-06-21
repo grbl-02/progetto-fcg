@@ -31,46 +31,6 @@ Player::Player() : sprite(texture) {
     isDying = false;
 }
 
-void Player::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& redflash) {
-    sprite.setPosition(pos);
-    if ((!isHurt && !isFlashing) || deathAnimationEnded || isDying) {
-        sprite.setColor(sf::Color::White);
-        window.draw(sprite);
-    } else if (isHurt) {
-        window.draw(sprite, &redflash);
-        if (redFlashClock.getElapsedTime().asSeconds() >= flash_duration) {
-            isHurt = false;
-            isFlashing = true;
-            redFlashClock.reset();
-            if (dead) isDying = true;
-        }
-    } else if (isFlashing && !dead) {
-        if (invincibilityFlashClock.getElapsedTime().asSeconds() >= invincibilityFlashInterval) {
-            spriteVisible = !spriteVisible;
-            invincibilityFlashClock.restart();
-        }
-        if (spriteVisible) sprite.setColor(sf::Color::White);
-        else sprite.setColor(sf::Color(255, 255, 255, 50));
-        window.draw(sprite);
-    }
-
-    if (hitboxes) {
-        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
-        hb.setPosition(hitbox.position);
-        hb.setOutlineColor(sf::Color::White);
-        hb.setOutlineThickness(1.f);
-        hb.setFillColor(sf::Color::Transparent);
-        window.draw(hb);
-
-        sf::RectangleShape slashHB = sf::RectangleShape(slashHitbox.size);
-        slashHB.setPosition(slashHitbox.position);
-        slashHB.setOutlineColor(sf::Color::Red);
-        slashHB.setOutlineThickness(1.f);
-        slashHB.setFillColor(sf::Color::Transparent);
-        window.draw(slashHB);
-    }
-}
-
 void Player::animation(int row, float frameTime) {
     if (dead) {
         if (animation_clock.getElapsedTime().asSeconds() >= frameTime) {
@@ -127,7 +87,7 @@ void Player::attack(float elapsed) {
         case DOWN: row = 6; break;
         default: break;
     }
-    animation(row, slashFrameTime);
+    animation(row, slash_frame_time);
 }
 
 void Player::slash() {
@@ -145,22 +105,22 @@ void Player::unslash() {
     slashHitbox = sf::FloatRect({0.f, 0.f}, {0.f, 0.f});
 }
 
-void Player::enter_left_pos() {
+void Player::enterLeftPos() {
     pos.x = 12 * 32 - 5.f;
     hitbox.position = {pos.x - 5.f, pos.y + 15.f};
 }
 
-void Player::enter_right_pos() {
+void Player::enterRightPos() {
     pos.x = 5.f;
     hitbox.position = {pos.x - 5.f, pos.y + 15.f};
 }
 
-void Player::enter_up_pos() {
+void Player::enterUpPos() {
     pos.y = (float)window_height / 3.f - (float)sprite.getTextureRect().size.y / 2.f + 6.f;
     hitbox.position = {pos.x - 5.f, pos.y + 15.f};
 }
 
-void Player::enter_down_pos() {
+void Player::enterDownPos() {
     pos.y = 3 * 32 - 15.f;
     hitbox.position = {pos.x - 5.f, pos.y + 15.f};
     if (hitbox.position.x < 173.f) {
@@ -217,4 +177,44 @@ void Player::reset(Difficulty difficulty) {
     attack_animation_frame = 0;
     aaf_no_mod = 0;
     death_animation_frame = 0;
+}
+
+void Player::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& redflash) {
+    sprite.setPosition(pos);
+    if ((!isHurt && !isFlashing) || deathAnimationEnded || isDying) {
+        sprite.setColor(sf::Color::White);
+        window.draw(sprite);
+    } else if (isHurt) {
+        window.draw(sprite, &redflash);
+        if (redFlashClock.getElapsedTime().asSeconds() >= flash_duration) {
+            isHurt = false;
+            isFlashing = true;
+            redFlashClock.reset();
+            if (dead) isDying = true;
+        }
+    } else if (isFlashing && !dead) {
+        if (invincibilityFlashClock.getElapsedTime().asSeconds() >= invincibility_flash_interval) {
+            spriteVisible = !spriteVisible;
+            invincibilityFlashClock.restart();
+        }
+        if (spriteVisible) sprite.setColor(sf::Color::White);
+        else sprite.setColor(sf::Color(255, 255, 255, 50));
+        window.draw(sprite);
+    }
+
+    if (hitboxes) {
+        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+        hb.setPosition(hitbox.position);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+
+        sf::RectangleShape slashHB = sf::RectangleShape(slashHitbox.size);
+        slashHB.setPosition(slashHitbox.position);
+        slashHB.setOutlineColor(sf::Color::Red);
+        slashHB.setOutlineThickness(1.f);
+        slashHB.setFillColor(sf::Color::Transparent);
+        window.draw(slashHB);
+    }
 }

@@ -28,7 +28,7 @@ void Fireball::draw(sf::RenderWindow& window, bool hitboxes) {
 void Fireball::goTowardsPlayer(float elapsed) {
     pos = pos + (direction * fireball_speed * elapsed);
     hitbox.position = hitbox.position + (direction * fireball_speed * elapsed);
-    animation(movFrameTime);
+    animation(mov_frame_time);
 }
 
 void Fireball::animation(float frameTime) {

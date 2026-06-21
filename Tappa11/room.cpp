@@ -9,8 +9,8 @@ Room::Room(std::string& filename, Flags& flags) : conditionEvaluator(flags) {
     chestFalls = false;
     roomTexture = sf::Texture(all_tiles);
     assetsTexture = sf::Texture(all_assets);
-    blueSlimeTexture = sf::Texture(blueSlime);
-    redSlimeTexture = sf::Texture(redSlime);
+    blueSlimeTexture = sf::Texture(blue_slime_path);
+    redSlimeTexture = sf::Texture(red_slime_path);
     spikesTexture = sf::Texture(spikes);
     grassTexture = sf::Texture(grass_tiles);
     this->flags = &flags;
@@ -300,7 +300,7 @@ void Room::load(std::string& new_room) {
                 if (enemy_data.contains("condition")) {
                     if (conditionEvaluator.evaluate(enemy_data["condition"])) {
                         sf::Vector2f pos;
-                        dir enemyDirection;
+                        Dir enemyDirection;
                         pos = {enemy_data["pos"][0], enemy_data["pos"][1]};
                         if (enemy_data["dir"] == "left") {
                             enemyDirection = LEFT;
@@ -319,7 +319,7 @@ void Room::load(std::string& new_room) {
                     }
                 } else {
                     sf::Vector2f pos;
-                    dir enemyDirection;
+                    Dir enemyDirection;
                     pos = {enemy_data["pos"][0], enemy_data["pos"][1]};
                     if (enemy_data["dir"] == "left") {
                         enemyDirection = LEFT;
@@ -374,8 +374,8 @@ void Room::enemyCollisions() {
                             enemy->pos.y += (intersecRect.size.y + epsilon);
                         }
                     }
-                    enemy->isJumping = false;
-                    enemy->cooldownTimer = 0.f; 
+                    enemy->is_jumping = false;
+                    enemy->cooldown_timer = 0.f; 
                     enemy->animation_frame = 0;
                     enemy->hurtbox_offset = {0.f, 0.f};
                 }
@@ -408,8 +408,8 @@ void Room::enemyCollisions() {
                         enemy->pos.y += (intersecRect.size.y + epsilon);
                     }
                 }
-                enemy->isJumping = false;
-                enemy->cooldownTimer = 0.f; 
+                enemy->is_jumping = false;
+                enemy->cooldown_timer = 0.f; 
                 enemy->animation_frame = 0;
                 enemy->hurtbox_offset = {0.f, 0.f};
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
@@ -424,8 +424,8 @@ void Room::enemyCollisions() {
                 if (auto intersecOp = enemy->hitbox.findIntersection(door_hitbox)) {
                     sf::FloatRect intersecRect = *intersecOp;
                     enemy->pos.y += (intersecRect.size.y + epsilon);
-                    enemy->isJumping = false;
-                    enemy->cooldownTimer = 0.f; 
+                    enemy->is_jumping = false;
+                    enemy->cooldown_timer = 0.f; 
                     enemy->animation_frame = 0;
                     enemy->hurtbox_offset = {0.f, 0.f};
                     enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
@@ -477,8 +477,8 @@ void Room::enemyWallCollisions() {
                         enemy->pos.y += intersecRect.size.y;
                     }
                 }
-                blueSlime->isJumping = false;
-                blueSlime->cooldownTimer = 0.f; 
+                blueSlime->is_jumping = false;
+                blueSlime->cooldown_timer = 0.f; 
                 blueSlime->animation_frame = 0;
                 enemy->hitbox.position = {enemy->pos.x - 7.f, enemy->pos.y + 4.f};
                 enemy->hurtbox.position = {enemy->pos.x - 7.f + enemy->hurtbox_offset.x, enemy->pos.y - 4.f + enemy->hurtbox_offset.y};
@@ -489,7 +489,7 @@ void Room::enemyWallCollisions() {
 
 void Room::enemyDeathCleanUp() {
     for (int i = 0; i < enemies.size(); ) {
-        if (enemies[i]->isDead && enemies[i]->deathFinished) {
+        if (enemies[i]->is_dead && enemies[i]->death_finished) {
             std::swap(enemies[i], enemies.back());
             enemies.pop_back();
         } else i++;
@@ -505,7 +505,7 @@ void Room::spikesAnimation() {
             animation_clock.restart();
             clock_active = true;
         }
-        if (animation_clock.getElapsedTime().asSeconds() >= spawnFrameTime) {
+        if (animation_clock.getElapsedTime().asSeconds() >= spawn_frame_time) {
             bool animationEnds = false;
             for (int i = 0; i < spikesVec.size(); i++) {
                 spikesVec[i]->sprite.setTextureRect(sf::IntRect({animation_frames[i]*32, 0}, {32, 32}));
@@ -534,7 +534,7 @@ void Room::spikesDisappearingAnimation() {
             animation_clock.restart();
             clock_active = true;
         }
-        if (animation_clock.getElapsedTime().asSeconds() >= spawnFrameTime) {
+        if (animation_clock.getElapsedTime().asSeconds() >= spawn_frame_time) {
             for (int i = 0; i < spikesVec.size(); i++) {
                 spikesVec[i]->sprite.setTextureRect(sf::IntRect({animation_frames[i]*32, 0}, {32, 32}));
                 animation_frames[i]--;

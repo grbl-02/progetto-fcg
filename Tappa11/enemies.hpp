@@ -5,58 +5,63 @@
 struct Player;
 
 struct Enemy {
+
     sf::Texture texture;
     sf::Sprite sprite;
     sf::Vector2f pos;
     std::string name;
+
     int animation_frame = 0;
     int jump_animation_frame = 0;
     int death_animation_frame = 0;
     sf::Clock animation_clock;
+
     FloatCircle aggro_range;
     sf::FloatRect hitbox;
     sf::FloatRect hurtbox;
     sf::Vector2f hurtbox_offset;
-    int healthPoints;
-    bool hurt;
+
     int id;
-    bool isDead;
-    bool deathFinished;
+    int health_points;
 
-    bool isJumping;
-    float jumptimer;
-    float cooldownTimer;
-    sf::Vector2f jumpStart;
-    sf::Vector2f jumpTarget;
-    dir enemyDir;
-    sf::Clock flashClock;
+    bool hurt;
+    bool is_dead;
+    bool death_finished;
+    sf::Clock flash_clock;
 
-    Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir, int id);
+    bool is_jumping;
+    float jump_timer;
+    float cooldown_timer;
+    sf::Vector2f jump_start;
+    sf::Vector2f jump_target;
+
+    Dir enemy_dir;
+
+    Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, Dir enemy_dir, int id);
     virtual ~Enemy() = default;
-
-    virtual void enemy_logic(const Player& player, float elapsed) {};
-    void animation(int row, float frameTime);
+    virtual void enemyLogic(const Player& player, float elapsed) {};
+    void animation(int row, float frame_time);
     virtual void onCollisionResponse() {};
     virtual void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash);
 };
 
 struct BlueSlime : Enemy {
-    BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id);
     bool is_starting_to_jump = false;
-    void jump_towards_player(sf::Vector2f playerPos, float elapsed);
-    void enemy_logic(const Player& player, float elapsed) override;
+
+    BlueSlime(sf::Vector2f pos, const sf::Texture& texture, Dir enemy_dir, int id);
+    void jumpTowardsPlayer(sf::Vector2f player_pos, float elapsed);
+    void enemyLogic(const Player& player, float elapsed) override;
 };
 
 struct RedSlime : Enemy {
     sf::Texture fireballTexture;
     std::vector<Fireball> fireballs;
-    bool hasShot;
+    bool has_shot;
     bool is_starting_to_spit = false;
 
-    RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id);
-
+    RedSlime(sf::Vector2f pos, const sf::Texture& texture, Dir enemy_dir, int id);
+    void enemyLogic(const Player& player, float elapsed) override;
     void facesPlayer(const Player& player);
-    void enemy_logic(const Player& player, float elapsed) override;
     void spitFire(const Player& player);
     void deleteFire();
     void draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) override;

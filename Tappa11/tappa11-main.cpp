@@ -3,12 +3,12 @@
 
 // eventi
 
-void handle_close(sf::RenderWindow& window) {
+void handleClose(sf::RenderWindow& window) {
     window.close();
 }
 
 // mantiene lo stesso aspect ratio quando si ridimensiona la finestra
-void handle_resize(const sf::Event::Resized& resized, sf::RenderWindow& window) {
+void handleResize(const sf::Event::Resized& resized, sf::RenderWindow& window) {
     float aspect = static_cast<float>(window_width)/static_cast<float>(window_height);
     sf::Vector2u ws = resized.size;
     float new_aspect = static_cast<float>(ws.x)/static_cast<float>(ws.y);
@@ -166,8 +166,8 @@ int main() {
     while (window.isOpen()) {
         // eventi
         window.handleEvents(
-            [&window](const sf::Event::Closed&) { handle_close(window); },
-            [&window](const sf::Event::Resized& event) { handle_resize(event, window); },
+            [&window](const sf::Event::Closed&) { handleClose(window); },
+            [&window](const sf::Event::Resized& event) { handleResize(event, window); },
             [&state, &window](const auto& event) { handle(event, state, window); } 
         );
 

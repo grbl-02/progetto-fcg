@@ -32,7 +32,7 @@ struct State {
     bool playerMoving;
     bool playerInteracting;
     bool hitboxes;
-    dir lastPressed;
+    Dir lastPressed;
     sf::Shader* flash;
     sf::Shader* redflash;
     sf::Text gameOverText;
@@ -56,18 +56,18 @@ struct State {
 
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
     void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
-    void room_transition();
+    void roomTransition();
     void processMovement(sf::Vector2f velocity, float elapsed);
     void hit();
     void update(float elapsed, sf::View& camera);
     void reset(Difficulty difficulty);
 
-    void trigger_gauntlet3();
-    void trigger_gauntlet5();
-    void trigger_gauntlet6();
-    void clear_gauntlet3();
-    void clear_gauntlet5();
-    void clear_gauntlet6();
+    void triggerGauntlet3();
+    void triggerGauntlet5();
+    void triggerGauntlet6();
+    void clearGauntlet3();
+    void clearGauntlet5();
+    void clearGauntlet6();
 
     void chestCheck();
     void interaction(std::string dialogue);

@@ -1,7 +1,7 @@
 #include "enemies.hpp"
 #include "player.hpp"
 
-Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir enemyDir, int id) : sprite(texture) {
+Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, Dir enemy_dir, int id) : sprite(texture) {
     sprite = sf::Sprite(texture);
     sprite.setTextureRect(sf::IntRect({0, 32}, {32, 32}));
     float sx = (float)sprite.getTextureRect().size.x;
@@ -10,32 +10,64 @@ Enemy::Enemy(sf::Vector2f pos, const sf::Texture& texture, std::string name, dir
     this->pos = pos;
     this->name = name;
     this->id = id;
-    healthPoints = 3;
+    health_points = 3;
     animation_clock.start();
     aggro_range = {pos, 100.f};
-    isJumping = false;
-    jumptimer = 0.f;
-    cooldownTimer = 0.f;
-    jumpStart = {0.f, 0.f};
-    jumpTarget = {0.f, 0.f};
-    this->enemyDir = enemyDir;
+    is_jumping = false;
+    jump_timer = 0.f;
+    cooldown_timer = 0.f;
+    jump_start = {0.f, 0.f};
+    jump_target = {0.f, 0.f};
+    this->enemy_dir = enemy_dir;
     hitbox = sf::FloatRect({pos.x - 7.f, pos.y + 4.f}, {13.f, 2.f});
     hurtbox = sf::FloatRect({pos.x - 7.f, pos.y - 4.f}, {13.f, 11.f});
     hurtbox_offset = {0.f, 0.f};
     hurt = false;
-    flashClock.reset();
-    isDead = false;
-    deathFinished = false;
+    flash_clock.reset();
+    is_dead = false;
+    death_finished = false;
 }
 
-BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id)
-        : Enemy(pos, texture, "blueSlime", enemyDir, id) {
-}
-
-RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, dir enemyDir, int id)
-        : Enemy(pos, texture, "redSlime", enemyDir, id) {
-    fireballTexture = sf::Texture(fireballSprites);
-    hasShot = false;
+void Enemy::animation(int row, float frame_time) {
+    if (is_dead) {
+        if (animation_clock.getElapsedTime().asSeconds() >= frame_time) {
+            animation_clock.restart();
+            sf::IntRect cur_frame = sf::IntRect({death_animation_frame * 32, row * 32}, {32, 32});
+            sprite.setTextureRect(cur_frame);
+            if (death_animation_frame == 4)
+                death_finished = true;
+            death_animation_frame = (death_animation_frame + 1) % 5;
+        }
+    } else if (is_jumping) {
+        if (animation_clock.getElapsedTime().asSeconds() >= frame_time) {
+            animation_clock.restart();
+            sf::IntRect cur_frame = sf::IntRect({jump_animation_frame * 32, row * 32}, {32, 32});
+            sprite.setTextureRect(cur_frame);
+            if (enemy_dir == LEFT)
+                sprite.setScale({-1.f, 1.f});
+            else
+                sprite.setScale({1.f, 1.f});
+            switch (jump_animation_frame) {
+                case 1:
+                case 2: hurtbox_offset.y -= 2.f; break;
+                case 3:
+                case 4: hurtbox_offset.y += 2.f; break;
+                default: break;
+            }
+            jump_animation_frame = (jump_animation_frame + 1) % 6;
+        }
+    } else {
+        if (animation_clock.getElapsedTime().asSeconds() >= frame_time) {
+            animation_clock.restart();
+            sf::IntRect cur_frame = sf::IntRect({animation_frame * 32, row * 32}, {32, 32});
+            sprite.setTextureRect(cur_frame);
+            if (enemy_dir == LEFT)
+                sprite.setScale({-1.f, 1.f});
+            else
+                sprite.setScale({1.f, 1.f});
+            animation_frame = (animation_frame + 1) % 4;
+        }
+    }
 }
 
 void Enemy::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
@@ -45,9 +77,9 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
         window.draw(sprite);
     } else {
         window.draw(sprite, &flash);
-        if (flashClock.getElapsedTime().asSeconds() >= flash_duration) {
+        if (flash_clock.getElapsedTime().asSeconds() >= flash_duration) {
             hurt = false;
-            flashClock.reset();
+            flash_clock.reset();
         }
     }
 
@@ -76,173 +108,135 @@ void Enemy::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
     }
 }
 
-void RedSlime::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
-    Enemy::draw(window, hitboxes, flash);
-    for (auto& fireball : fireballs)
-        fireball.draw(window, hitboxes);
+BlueSlime::BlueSlime(sf::Vector2f pos, const sf::Texture& texture, Dir enemy_dir, int id)
+        : Enemy(pos, texture, "blueSlime", enemy_dir, id) {
 }
 
-void Enemy::animation(int row, float frameTime) {
-    if (isDead) {
-        if (animation_clock.getElapsedTime().asSeconds() >= frameTime) {
-            animation_clock.restart();
-            sf::IntRect curFrame = sf::IntRect({death_animation_frame * 32, row * 32}, {32, 32});
-            sprite.setTextureRect(curFrame);
-            if (death_animation_frame == 4)
-                deathFinished = true;
-            death_animation_frame = (death_animation_frame + 1) % 5;
-        }
-    } else if (isJumping) {
-        if (animation_clock.getElapsedTime().asSeconds() >= frameTime) {
-            animation_clock.restart();
-            sf::IntRect curFrame = sf::IntRect({jump_animation_frame * 32, row * 32}, {32, 32});
-            sprite.setTextureRect(curFrame);
-            if (enemyDir == LEFT)
-                sprite.setScale({-1.f, 1.f});
-            else
-                sprite.setScale({1.f, 1.f});
-            switch (jump_animation_frame) {
-                case 1:
-                case 2: hurtbox_offset.y -= 2.f; break;
-                case 3:
-                case 4: hurtbox_offset.y += 2.f; break;
-                default: break;
-            }
-            jump_animation_frame = (jump_animation_frame + 1) % 6;
-        }
-    } else {
-        if (animation_clock.getElapsedTime().asSeconds() >= frameTime) {
-            animation_clock.restart();
-            sf::IntRect curFrame = sf::IntRect({animation_frame * 32, row * 32}, {32, 32});
-            sprite.setTextureRect(curFrame);
-            if (enemyDir == LEFT)
-                sprite.setScale({-1.f, 1.f});
-            else
-                sprite.setScale({1.f, 1.f});
-            animation_frame = (animation_frame + 1) % 4;
-        }
-    }
-}
-
-void BlueSlime::jump_towards_player(sf::Vector2f playerPos, float elapsed) {
-    if (!isJumping) {
-        sf::Vector2f toPlayer = playerPos - hitbox.getCenter();
-        float distance = toPlayer.length();
-        sf::Vector2f direction = toPlayer / distance;
+void BlueSlime::jumpTowardsPlayer(sf::Vector2f player_pos, float elapsed) {
+    if (!is_jumping) {
+        sf::Vector2f to_player = player_pos - hitbox.getCenter();
+        float distance = to_player.length();
+        sf::Vector2f direction = to_player / distance;
         if (std::abs(direction.x) >= std::abs(direction.y)) {
-            if (direction.x > 0) enemyDir = RIGHT;
-            else enemyDir = LEFT;
+            if (direction.x > 0) enemy_dir = RIGHT;
+            else enemy_dir = LEFT;
         } else {
-            if (direction.y > 0) enemyDir = DOWN;
-            else enemyDir = UP;
+            if (direction.y > 0) enemy_dir = DOWN;
+            else enemy_dir = UP;
         }
-        jumpStart = pos;
-        jumpTarget = jumpStart + direction * jumpdist;
-        isJumping = true;
+        jump_start = pos;
+        jump_target = jump_start + direction * jump_distance;
+        is_jumping = true;
         is_starting_to_jump = true;
         jump_animation_frame = 0;
-        jumptimer = 0.f;
+        jump_timer = 0.f;
     } else {
-        jumptimer += elapsed;
-        float progress = jumptimer / jumptime;
+        jump_timer += elapsed;
+        float progress = jump_timer / jump_time;
         if (progress >= 1.0f) {
-            pos = jumpTarget;
+            pos = jump_target;
             aggro_range.center = pos;
-            isJumping = false;
+            is_jumping = false;
             animation_frame = 0;
-            cooldownTimer = 0.f;
+            cooldown_timer = 0.f;
         } else {
-            sf::Vector2f currentPos = jumpStart + progress * (jumpTarget - jumpStart);
+            sf::Vector2f currentPos = jump_start + progress * (jump_target - jump_start);
             pos = currentPos;
             aggro_range.center = pos;
         }
     }
 }
 
-void BlueSlime::enemy_logic(const Player& player, float elapsed) {
-    if (!isJumping)
-        cooldownTimer += elapsed;
+void BlueSlime::enemyLogic(const Player& player, float elapsed) {
+    if (!is_jumping)
+        cooldown_timer += elapsed;
 
-    if (isJumping) {
-        jump_towards_player(player.hitbox.getCenter(), elapsed);
-    } else if (intersects(aggro_range, player.pos) && cooldownTimer >= cooldown) {
-        jump_towards_player(player.hitbox.getCenter(), elapsed);
+    if (is_jumping) {
+        jumpTowardsPlayer(player.hitbox.getCenter(), elapsed);
+    } else if (intersects(aggro_range, player.pos) && cooldown_timer >= cooldown) {
+        jumpTowardsPlayer(player.hitbox.getCenter(), elapsed);
     }
 
     int row = 0;
-    if (isJumping) {
-        switch (enemyDir) {
+    if (is_jumping) {
+        switch (enemy_dir) {
             case LEFT: row = 4; break;
             case RIGHT: row = 4; break;
             case UP: row = 5; break;
             case DOWN: row = 3; break;
         }
-        animation(row, slimeMovFrameTime);
+        animation(row, slime_mov_frame_time);
     } else {
-        switch (enemyDir) {
+        switch (enemy_dir) {
             case LEFT: row = 1; break;
             case RIGHT: row = 1; break;
             case UP: row = 2; break;
             case DOWN: row = 0; break;
         }
-        animation(row, idleFrameTime);
+        animation(row, idle_frame_time);
     }
 }
 
-void RedSlime::facesPlayer(const Player& player) {
-    sf::Vector2f toPlayer = player.pos - pos;
-    float distance = toPlayer.length();
-    sf::Vector2f direction = toPlayer / distance;
-    if (std::abs(direction.x) >= std::abs(direction.y)) {
-        if (direction.x > 0) enemyDir = RIGHT;
-        else enemyDir = LEFT;
-    } else {
-        if (direction.y > 0) enemyDir = DOWN;
-        else enemyDir = UP;
-    }
+RedSlime::RedSlime(sf::Vector2f pos, const sf::Texture& texture, Dir enemy_dir, int id)
+        : Enemy(pos, texture, "redSlime", enemy_dir, id) {
+    fireballTexture = sf::Texture(fireball_path);
+    has_shot = false;
 }
 
-void RedSlime::enemy_logic(const Player& player, float elapsed) {
+void RedSlime::enemyLogic(const Player& player, float elapsed) {
     facesPlayer(player);
 
-    if (!isJumping) {
-        cooldownTimer += elapsed;
-        if (cooldownTimer >= cooldown) {
-            isJumping = true;
-            cooldownTimer = 0.f;
+    if (!is_jumping) {
+        cooldown_timer += elapsed;
+        if (cooldown_timer >= cooldown) {
+            is_jumping = true;
+            cooldown_timer = 0.f;
             jump_animation_frame = 0;
-            hasShot = false;
+            has_shot = false;
         }
     } else {
-        jumptimer += elapsed;
-        if (jump_animation_frame == 3 && !hasShot) {
+        jump_timer += elapsed;
+        if (jump_animation_frame == 3 && !has_shot) {
             spitFire(player);
-            hasShot = true;
+            has_shot = true;
         }
-        if (jumptimer >= jumptime) {
-            isJumping = false;
-            jumptimer = 0.f;
+        if (jump_timer >= jump_time) {
+            is_jumping = false;
+            jump_timer = 0.f;
             animation_frame = 0;
         }
     }
 
     int row = 0;
-    if (isJumping) {
-        switch (enemyDir) {
+    if (is_jumping) {
+        switch (enemy_dir) {
             case LEFT: row = 4; break;
             case RIGHT: row = 4; break;
             case UP: row = 5; break;
             case DOWN: row = 3; break;
         }
-        animation(row, slimeMovFrameTime);
+        animation(row, slime_mov_frame_time);
     } else {
-        switch (enemyDir) {
+        switch (enemy_dir) {
             case LEFT: row = 1; break;
             case RIGHT: row = 1; break;
             case UP: row = 2; break;
             case DOWN: row = 0; break;
         }
-        animation(row, idleFrameTime);
+        animation(row, idle_frame_time);
+    }
+}
+
+void RedSlime::facesPlayer(const Player& player) {
+    sf::Vector2f to_player = player.pos - pos;
+    float distance = to_player.length();
+    sf::Vector2f direction = to_player / distance;
+    if (std::abs(direction.x) >= std::abs(direction.y)) {
+        if (direction.x > 0) enemy_dir = RIGHT;
+        else enemy_dir = LEFT;
+    } else {
+        if (direction.y > 0) enemy_dir = DOWN;
+        else enemy_dir = UP;
     }
 }
 
@@ -266,4 +260,10 @@ void RedSlime::deleteFire() {
         } else
             i++;
     }
+}
+
+void RedSlime::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
+    Enemy::draw(window, hitboxes, flash);
+    for (auto& fireball : fireballs)
+        fireball.draw(window, hitboxes);
 }

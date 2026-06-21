@@ -49,8 +49,8 @@ ConditionEvaluator::ConditionEvaluator(const Flags& flags) {
     };
 }
 
-bool ConditionEvaluator::evaluate(const std::string& conditionKey) {
-    auto it = condition_map.find(conditionKey);
+bool ConditionEvaluator::evaluate(const std::string& condition_key) {
+    auto it = condition_map.find(condition_key);
     if (it != condition_map.end())
     {
         return it->second();

@@ -19,7 +19,7 @@ void HUD::update() {
             animationClock.restart();
             clock_active = true;
         }
-        if (animationClock.getElapsedTime().asSeconds() >= spawnFrameTime) {
+        if (animationClock.getElapsedTime().asSeconds() >= spawn_frame_time) {
             bool animationEnds = false;
             hearts[healthPoints - 1].setTextureRect(sf::IntRect({1 + animation_frames * 11, 0}, {10, 10}));
             animation_frames++;
