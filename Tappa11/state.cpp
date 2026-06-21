@@ -13,28 +13,9 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
       textbox(font),
       hud(heartsTexture, player.healthPoints),
       menu(font) {
-    difficulty = NORMAL;
-    heartsTexture = sf::Texture(hearts_path);
-    hud = HUD(heartsTexture, player.healthPoints);
-    gameMode = MENU;
-    roomname = room0;
-    move_player_up = false;
-    move_player_down = false;
-    move_player_left = false;
-    move_player_right = false;
-    lastPressed = UP;
-    playerAttacks = false;
-    playerMoving = false;
-    playerInteracting = false;
-    hitboxes = false;
+
     this->flash = &flash;
     this->redflash = &redflash;
-    interactionIsHappening = false;
-    continueDialogue = false;
-    checkingChest3 = false;
-    checkingChest5 = false;
-    checkingChest6 = false;
-    spawningSmoke = sf::Texture(spawn_path);
 
     for (int i = 0; i < 4; i++) {
         sf::Sprite sprite = sf::Sprite(spawningSmoke, sf::IntRect({0, 0}, {32, 32}));
@@ -42,9 +23,7 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
         spawningSmokeSprites.push_back(sprite);
     }
 
-    start_animations = false;
     animation_clock.reset();
-    clockActive = false;
 
     gameOverText.setFillColor(sf::Color::White);
     gameOverText.setPosition({((float)window_width / 3.f - gameOverText.getGlobalBounds().size.x) / 2.f, 50.f});
@@ -54,61 +33,6 @@ State::State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font)
 
     victoryText.setFillColor(sf::Color::White);
     victoryText.setPosition({((float)window_width / 3.f - victoryText.getGlobalBounds().size.x) / 2.f, 50.f});
-}
-
-void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash) {
-    if (gameMode == MENU)
-        menu.draw(window);
-    else {
-        std::vector<RenderCommand> render_queue;
-        float player_depth = player.hitbox.position.y;
-        render_queue.push_back({
-            player_depth,
-            [this, &window, &redflash]() { player.draw(window, hitboxes, redflash); }
-        });
-        for (auto& enemy : room.enemies) {
-            float enemyDepth = enemy->hitbox.position.y;
-            render_queue.push_back({
-                enemyDepth,
-                [this, &window, &flash, &enemy]() { enemy->draw(window, hitboxes, flash); }
-            });
-        }
-        std::sort(render_queue.begin(), render_queue.end(), [](const RenderCommand& a, const RenderCommand& b) {
-            return a.depth < b.depth;
-        });
-        
-        room.draw(window, hitboxes, flash);
-        for (const auto& command : render_queue)
-            command.drawAction();
-        textbox.draw(window);
-
-        if (start_animations)
-            for (auto& sprite : spawningSmokeSprites) window.draw(sprite);
-        hud.draw(window);
-
-        if (hitboxes && 
-            (roomname == "Risorse/maps-09/room0.json"
-            || roomname == "Risorse/maps-09/room1.json"
-            || roomname == "Risorse/maps-09/room2.json"
-            || roomname == "Risorse/maps-09/room4.json")) {
-            for (auto& hb : room.door_hitboxes) {
-                sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
-                hitbox.setPosition(hb.position);
-                hitbox.setOutlineColor(sf::Color::White);
-                hitbox.setOutlineThickness(1.f);
-                hitbox.setFillColor(sf::Color::Transparent);
-                window.draw(hitbox);
-            }
-        }
-        if (gameMode == GAME_OVER) {
-            window.draw(gameOverText);
-            window.draw(restartText);
-        }
-        if (gameMode == VICTORY) {
-            window.draw(victoryText);
-            window.draw(restartText);
-        }
-    }
 }
 
 void State::roomTransition() {
@@ -708,6 +632,61 @@ void State::spawnAnimation() {
             } else {
                 animation_clock.restart();
             }
+        }
+    }
+}
+
+void State::draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash) {
+    if (gameMode == MENU)
+        menu.draw(window);
+    else {
+        std::vector<RenderCommand> render_queue;
+        float player_depth = player.hitbox.position.y;
+        render_queue.push_back({
+            player_depth,
+            [this, &window, &redflash]() { player.draw(window, hitboxes, redflash); }
+        });
+        for (auto& enemy : room.enemies) {
+            float enemyDepth = enemy->hitbox.position.y;
+            render_queue.push_back({
+                enemyDepth,
+                [this, &window, &flash, &enemy]() { enemy->draw(window, hitboxes, flash); }
+            });
+        }
+        std::sort(render_queue.begin(), render_queue.end(), [](const RenderCommand& a, const RenderCommand& b) {
+            return a.depth < b.depth;
+        });
+        
+        room.draw(window, hitboxes, flash);
+        for (const auto& command : render_queue)
+            command.drawAction();
+        textbox.draw(window);
+
+        if (start_animations)
+            for (auto& sprite : spawningSmokeSprites) window.draw(sprite);
+        hud.draw(window);
+
+        if (hitboxes && 
+            (roomname == "Risorse/maps-09/room0.json"
+            || roomname == "Risorse/maps-09/room1.json"
+            || roomname == "Risorse/maps-09/room2.json"
+            || roomname == "Risorse/maps-09/room4.json")) {
+            for (auto& hb : room.door_hitboxes) {
+                sf::RectangleShape hitbox = sf::RectangleShape(hb.size);
+                hitbox.setPosition(hb.position);
+                hitbox.setOutlineColor(sf::Color::White);
+                hitbox.setOutlineThickness(1.f);
+                hitbox.setFillColor(sf::Color::Transparent);
+                window.draw(hitbox);
+            }
+        }
+        if (gameMode == GAME_OVER) {
+            window.draw(gameOverText);
+            window.draw(restartText);
+        }
+        if (gameMode == VICTORY) {
+            window.draw(victoryText);
+            window.draw(restartText);
         }
     }
 }

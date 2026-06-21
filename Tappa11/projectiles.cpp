@@ -11,20 +11,6 @@ Fireball::Fireball(const sf::Texture& texture, sf::IntRect textureRect, sf::Vect
     hitbox = sf::FloatRect({pos.x - 3.f, pos.y - 3.f}, {6.f, 6.f});
 }
 
-void Fireball::draw(sf::RenderWindow& window, bool hitboxes) {
-    sprite.setPosition(pos);
-    window.draw(sprite);
-
-    if (hitboxes) {
-        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
-        hb.setPosition(hitbox.position);
-        hb.setOutlineColor(sf::Color::Red);
-        hb.setOutlineThickness(1.f);
-        hb.setFillColor(sf::Color::Transparent);
-        window.draw(hb);
-    }
-}
-
 void Fireball::goTowardsPlayer(float elapsed) {
     pos = pos + (direction * fireball_speed * elapsed);
     hitbox.position = hitbox.position + (direction * fireball_speed * elapsed);
@@ -51,5 +37,19 @@ void Fireball::animation(float frameTime) {
             curFrame = sf::IntRect({2, 2}, {8, 8});
         sprite.setTextureRect(curFrame);
         animation_frame = (animation_frame + 1) % 6;
+    }
+}
+
+void Fireball::draw(sf::RenderWindow& window, bool hitboxes) {
+    sprite.setPosition(pos);
+    window.draw(sprite);
+
+    if (hitboxes) {
+        sf::RectangleShape hb = sf::RectangleShape(hitbox.size);
+        hb.setPosition(hitbox.position);
+        hb.setOutlineColor(sf::Color::Red);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
     }
 }

@@ -1,68 +1,15 @@
 #include "room.hpp"
 
 Room::Room(std::string& filename, Flags& flags) : conditionEvaluator(flags) {
-    start_animations = false;
-    clock_active = false;
-    spikesDisappearing = false;
-    animationEnded = false;
-    animation_clock.reset();
-    chestFalls = false;
-    roomTexture = sf::Texture(all_tiles);
-    assetsTexture = sf::Texture(all_assets);
-    blueSlimeTexture = sf::Texture(blue_slime_path);
-    redSlimeTexture = sf::Texture(red_slime_path);
-    spikesTexture = sf::Texture(spikes);
-    grassTexture = sf::Texture(grass_tiles);
-    this->flags = &flags;
-    conditionEvaluator = ConditionEvaluator(flags);
     door_hitboxes.push_back(sf::FloatRect({5 * 32.f, 3 * 32.f}, {13.f, -1 * 32.f}));
     door_hitboxes.push_back(sf::FloatRect({7 * 32.f, 3 * 32.f}, {-13.f, -1 * 32.f}));
+
+    animation_clock.reset();
+
+    this->flags = &flags;
+    conditionEvaluator = ConditionEvaluator(flags);
+    
     load(filename);
-}
-
-void Room::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
-    for (auto& tile : tiles)
-        tile.draw(window);
-    for (auto& asset : assets)
-        asset.draw(window);
-
-    if (hitboxes) {
-        sf::Vector2f sizeL = {(float)left_exit.size.x, (float)left_exit.size.y};
-        sf::Vector2f posL = {(float)left_exit.position.x, (float)left_exit.position.y};
-        sf::RectangleShape hb = sf::RectangleShape(sizeL);
-        hb.setPosition(posL);
-        hb.setOutlineColor(sf::Color::White);
-        hb.setOutlineThickness(1.f);
-        hb.setFillColor(sf::Color::Transparent);
-        window.draw(hb);
-
-        sizeL = {(float)right_exit.size.x, (float)right_exit.size.y};
-        posL = {(float)right_exit.position.x, (float)right_exit.position.y};
-        hb = sf::RectangleShape(sizeL);
-        hb.setPosition(posL);
-        hb.setOutlineColor(sf::Color::White);
-        hb.setOutlineThickness(1.f);
-        hb.setFillColor(sf::Color::Transparent);
-        window.draw(hb);
-
-        sizeL = {(float)up_exit.size.x, (float)up_exit.size.y};
-        posL = {(float)up_exit.position.x, (float)up_exit.position.y};
-        hb = sf::RectangleShape(sizeL);
-        hb.setPosition(posL);
-        hb.setOutlineColor(sf::Color::White);
-        hb.setOutlineThickness(1.f);
-        hb.setFillColor(sf::Color::Transparent);
-        window.draw(hb);
-
-        sizeL = {(float)down_exit.size.x, (float)down_exit.size.y};
-        posL = {(float)down_exit.position.x, (float)down_exit.position.y};
-        hb = sf::RectangleShape(sizeL);
-        hb.setPosition(posL);
-        hb.setOutlineColor(sf::Color::White);
-        hb.setOutlineThickness(1.f);
-        hb.setFillColor(sf::Color::Transparent);
-        window.draw(hb);
-    }
 }
 
 sf::IntRect Room::stringToIntRect(std::string tileID) {
@@ -162,14 +109,14 @@ void Room::load(std::string& new_room) {
 
     nlohmann::json mapData;
     file >> mapData;
-    
+
     for (int ty = 0; ty < floor_tile_num.y; ty++) {
         for (int tx = 0; tx < floor_tile_num.x; tx++) {
             std::string tileID = mapData["grid"][ty * floor_tile_num.x + tx];
             sf::IntRect textureRect = stringToIntRect(tileID);
             sf::Vector2f tile_pos = {
-                tx * 32 + displacement.x,
-                ty * 32 + displacement.y
+                tx * 32.f,
+                ty * 32.f
             };
             if (tileID == "UPLWALLTRANS" || tileID == "RIGHTDOORTRANS2") {
                 sf::IntRect floorRect = sf::IntRect({0*32, 0*32}, {32, 32});
@@ -566,4 +513,49 @@ int Room::chestFalling(float elapsed) {
         }
     }
     return -1;
+}
+
+void Room::draw(sf::RenderWindow& window, bool hitboxes, sf::Shader& flash) {
+    for (auto& tile : tiles)
+        tile.draw(window);
+    for (auto& asset : assets)
+        asset.draw(window);
+
+    if (hitboxes) {
+        sf::Vector2f sizeL = {(float)left_exit.size.x, (float)left_exit.size.y};
+        sf::Vector2f posL = {(float)left_exit.position.x, (float)left_exit.position.y};
+        sf::RectangleShape hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+
+        sizeL = {(float)right_exit.size.x, (float)right_exit.size.y};
+        posL = {(float)right_exit.position.x, (float)right_exit.position.y};
+        hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+
+        sizeL = {(float)up_exit.size.x, (float)up_exit.size.y};
+        posL = {(float)up_exit.position.x, (float)up_exit.position.y};
+        hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+
+        sizeL = {(float)down_exit.size.x, (float)down_exit.size.y};
+        posL = {(float)down_exit.position.x, (float)down_exit.position.y};
+        hb = sf::RectangleShape(sizeL);
+        hb.setPosition(posL);
+        hb.setOutlineColor(sf::Color::White);
+        hb.setOutlineThickness(1.f);
+        hb.setFillColor(sf::Color::Transparent);
+        window.draw(hb);
+    }
 }

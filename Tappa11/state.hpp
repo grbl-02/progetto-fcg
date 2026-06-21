@@ -12,50 +12,57 @@
 struct RenderCommand;
 
 struct State {
-    GameMode gameMode;
+    GameMode gameMode = MENU;
+    Difficulty difficulty = NORMAL;
     Flags flags;
     Menu menu;
     Textbox textbox;
     DialogueManager dialogueManager;
     SoundManager soundManager;
-    HUD hud;
-    sf::Texture heartsTexture;
-    std::string roomname;
     Player player;
     Room room;
+    std::string roomname = room0;
 
-    bool move_player_up;
-    bool move_player_down;
-    bool move_player_left;
-    bool move_player_right;
-    bool playerAttacks;
-    bool playerMoving;
-    bool playerInteracting;
-    bool hitboxes;
-    Dir lastPressed;
+    HUD hud;
+    sf::Texture heartsTexture = sf::Texture(hearts_path);
+
+    bool move_player_up = false;
+    bool move_player_down = false;
+    bool move_player_left = false;
+    bool move_player_right = false;
+    bool playerAttacks = false;
+    bool playerMoving = false;
+    bool playerInteracting = false;
+    Dir lastPressed = UP;
+
     sf::Shader* flash;
     sf::Shader* redflash;
+
     sf::Text gameOverText;
     sf::Text restartText;
     sf::Text victoryText;
-    bool interactionIsHappening;
-    bool continueDialogue;
-    bool checkingChest3;
-    bool checkingChest5;
-    bool checkingChest6;
+
+    bool interactionIsHappening = false;
+    bool continueDialogue = false;
+    bool checkingChest3 = false;
+    bool checkingChest5 = false;
+    bool checkingChest6 = false;
+
     sf::Vector2f spritePositions[4] = {{32.f, 96.f}, {320.f, 96.f}, {32.f, 224.f}, {320.f, 224.f}}; 
-    sf::Texture spawningSmoke;
+    sf::Texture spawningSmoke = sf::Texture(spawn_path);
     std::vector<sf::Sprite> spawningSmokeSprites;
-    bool start_animations;
+    bool start_animations = false;
     sf::Clock animation_clock;
-    bool clockActive;
+    bool clockActive = false;
     int animation_frames[4] = {0, 0, 0, 0};
-    Difficulty difficulty;
+
     bool play_the_victory_music = false;
     bool music_played = false;
 
+    bool hitboxes = false;
+
     State(sf::Shader& flash, sf::Shader& redflash, sf::Font& font);
-    void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
+
     void roomTransition();
     void processMovement(sf::Vector2f velocity, float elapsed);
     void hit();
@@ -72,4 +79,6 @@ struct State {
     void chestCheck();
     void interaction(std::string dialogue);
     void spawnAnimation();
+
+    void draw(sf::RenderWindow& window, sf::Shader& flash, sf::Shader& redflash);
 };
